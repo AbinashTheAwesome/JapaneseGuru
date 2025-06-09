@@ -1,0 +1,54 @@
+japanese-app-v2/
+├── index.html
+├── manifest.json
+├── README.txt
+├── assets/
+│   ├── css/
+│   │   ├── main.css
+│   │   └── dark.css
+│   └── js/
+│       ├── app.js
+│       ├── storage.js
+│       ├── quiz.js
+│       ├── canvas.js
+│       └── flashcards.js
+├── quiz/
+│   └── hiragana.html
+├── vocabulary/
+│   └── flashcards.html
+└── practice/
+    └── writing.html
+
+V3
+/japanese-app-v3/
+├── index.html
+├── manifest.json
+├── service-worker.js
+├── README.txt
+├── assets/
+│   ├── css/
+│   │   ├── main.css
+│   │   └── dark.css
+│   ├── js/
+│   │   ├── app.js
+│   │   ├── storage.js
+│   │   ├── quiz.js
+│   │   ├── canvas.js
+│   │   ├── flashcards.js
+│   │   └── dashboard.js
+│   ├── data/
+│   │   ├── hiragana.json
+│   │   ├── katakana.json
+│   │   ├── vocabulary.json
+│   │   └── kanji.json
+│   └── icons/
+│       ├── icon-192.png
+│       └── icon-512.png
+├── quiz/
+│   └── quiz.html
+├── vocabulary/
+│   └── flashcards.html
+├── practice/
+│   └── writing.html
+└── dashboard/
+    └── stats.html

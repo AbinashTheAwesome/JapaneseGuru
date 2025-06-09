@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-gray-100">
+    <header class="bg-green-600 text-white p-4 shadow-md">
+        <h1 class="text-2xl font-bold text-center">Japanese Quiz</h1>
+        <nav class="flex justify-center gap-4 mt-2">
+            <a href="../index.html" class="px-3 py-2 rounded hover:bg-green-700 focus:bg-green-700 focus:outline-none" aria-label="Go to Home">Home</a>
+            <a href="../videos/videos.html" class="px-3 py-2 rounded hover:bg-green-700 focus:bg-green-700 focus:outline-none" aria-label="Go to Videos">Videos</a>
+            <a href="../vocabulary/flashcards.html" class="px-3 py-2 rounded hover:bg-green-700 focus:bg-green-700 focus:outline-none" aria-label="Go to Flashcards">Flashcards</a>
+            <a href="../practice/writing.html" class="px-3 py-2 rounded hover:bg-green-700 focus:bg-green-700 focus:outline-none" aria-label="Go to Kanji Practice">Kanji Practice</a>
+        </nav>
+    </header>
+    <main class="max-w-4xl mx-auto p-4">
+        <div class="quiz-container animate-fade-in">
+            <div class="mb-4">
+                <button id="hiragana-btn" class="bg-blue-600 text-white px-4 py-2 rounded mr-2 hover:bg-blue-700 focus:bg-blue-800 focus:ring-2 focus:ring-blue-400" onclick="window.location.href='?type=hiragana'">Hiragana</button>
+                <button id="katakana-btn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 focus:bg-purple-800 focus:ring-2 focus:ring-purple-400" onclick="window.location.href='?type=katakana'">Katakana</button>
+            </div>
+            <div id="progress-container" class="progress-container mb-4">
+                <div id="progress-bar" class="h-full bg-green-600 transition-all duration-300" style="width: 0%;"></div>
+            </div>
+            <h2 id="question" class="text-xl font-semibold mb-4"></h2>
+            <div id="options">
+                <button class="option" aria-label="Option 1"></button>
+                <button class="option" aria-label="Option 2"></button>
+                <button class="option" aria-label="Option 3"></button>
+                <button class="option" aria-label="Option 4"></button>
+            </div>
+            <div id="result" class="mt-4"></div>
+            <div id="progress" class="mt-2 text-center"></div>
+            <div id="timer" class="mt-2 text-center"></div>
+        </div>
+    </main>
+    <script src="../assets/js/storage.js"></script>
+    <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
