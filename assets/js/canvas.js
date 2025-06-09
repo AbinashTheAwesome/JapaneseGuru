@@ -66,15 +66,23 @@ function clearCanvas() {
     drawStrokeGuide();
 }
 
-// Embedded kanji data (replacing kanji.json)
-const kanjiData = [
-    { character: "日", strokes: ["M50,10L50,90", "M20,40H80"] },
-    { character: "月", strokes: ["M50,10L50,90", "M20,40H80", "M50,50L50,90", "M20,60H80"] },
-    { character: "火", strokes: ["M50,50L30,20", "M50,50L70,20", "M40,50L60,80"] }
-];
-
-let kanjiList = [...kanjiData];
+let kanjiList = [];
 let currentKanji = 0;
+
+async function loadKanji() {
+    try {
+        const response = await fetch('assets/data/kanji.json');
+        kanjiList = await response.json();
+    } catch (error) {
+        console.error('Error loading kanji data:', error);
+        kanjiList = [
+            { character: '日', strokes: ['M50,10L50,90', 'M20,40H80'] },
+            { character: '月', strokes: ['M50,10L50,90', 'M20,40H80', 'M50,50L50,90', 'M20,60H80'] }
+        ];
+    }
+    drawStrokeGuide();
+    document.getElementById('current-kanji').textContent = kanjiList[currentKanji].character;
+}
 
 function drawStrokeGuide() {
     const guideCanvas = document.getElementById('stroke-guide');
@@ -95,7 +103,4 @@ function nextKanji() {
     clearCanvas();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('current-kanji').textContent = kanjiList[currentKanji].character;
-    drawStrokeGuide();
-});
+document.addEventListener('DOMContentLoaded', loadKanji);

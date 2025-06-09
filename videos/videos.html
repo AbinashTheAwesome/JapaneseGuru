@@ -6,9 +6,10 @@
     <title>Videos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/dark.css">
 </head>
-<body class="bg-gray-100">
-    <header class="bg-green-600 text-white p-4 shadow-md">
+<body class="bg-gray-900 text-white">
+    <header class="bg-green-600 p-4 shadow-md">
         <h1 class="text-2xl font-bold text-center">Videos</h1>
         <nav class="flex justify-center gap-4 mt-2">
             <a href="../index.html" class="px-3 py-2 rounded hover:bg-green-700 focus:bg-green-700 focus:outline-none" aria-label="Go to Home">Home</a>
@@ -21,16 +22,19 @@
         <section class="mb-8">
             <h2 class="text-xl font-semibold mb-4">Japanese Learning Videos</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Video 1: Hiragana Pronunciation -->
                 <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
                     <h3 class="text-lg font-medium mb-2">Hiragana Pronunciation</h3>
-                    <iframe class="w-full aspect-video rounded" src="https://www.youtube.com/embed/6JhcmMoA2Dk" title="Hiragana Pronunciation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    <iframe class="w-full aspect-video rounded" src="https://www.youtube.com/embed/iKGV-LDw1UM?si=INE_5wLPzq6tKz3q" title="Hiragana Pronunciation" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
+                <!-- Video 2: New Video -->
                 <div class="bg-gray-800 p-4 rounded-lg shadow-lg">
                     <h3 class="text-lg font-medium mb-2">Katakana Writing</h3>
-                    <iframe class="w-full aspect-video rounded" src="https://www.youtube.com/embed/iKGV-LDw1UM?si=INE_5wLPzq6tKz3q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                </div>
+                    <iframe class="w-full aspect-video rounded" src="https://www.youtube.com/embed/4id--mcXOho?si=zTIfCCQX0YbQW6Ya" title="Katakana Writing" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div> 
             </div>
         </section>
+        <div id="error-message" class="text-center text-red-500 mt-4"></div>
     </main>
 </body>
 </html>

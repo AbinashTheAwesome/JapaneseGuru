@@ -1,32 +1,51 @@
 let flashcards = [];
 let currentCard = 0;
 let showMeaning = false;
-
-// Embedded vocabulary data (replacing vocabulary.json)
-const vocabularyData = [
-    { word: "日", meaning: "Sun / Day", romaji: "hi, nichi" },
-    { word: "月", meaning: "Moon / Month", romaji: "tsuki, getsu" },
-    { word: "火", meaning: "Fire", romaji: "hi, ka" },
-    { word: "水", meaning: "Water", romaji: "mizu, sui" },
-    { word: "木", meaning: "Tree / Wood", romaji: "ki, moku" },
-    { word: "金", meaning: "Gold / Money", romaji: "kane, kin" },
-    { word: "土", meaning: "Earth / Soil", romaji: "tsuchi, do" },
-    { word: "人", meaning: "Person", romaji: "hito, jin" },
-    { word: "山", meaning: "Mountain", romaji: "yama, san" },
-    { word: "川", meaning: "River", romaji: "kawa, sen" }
-    // Add more as needed; truncated for brevity
-];
+const DATA_PATH = '../assets/data/';
 
 async function loadFlashcards() {
-    flashcards = [...vocabularyData]; // Load embedded data
     const errorMessage = document.getElementById('error-message');
     if (!errorMessage) {
         console.error('Error message element not found');
         return;
     }
-    errorMessage.textContent = '';
+    errorMessage.textContent = 'Loading flashcards...';
+    errorMessage.classList.add('text-gray-500');
+
+    try {
+        const fullPath = `${DATA_PATH}vocabulary.json`;
+        console.log(`Loading flashcards from ${fullPath}`);
+        const response = await fetch(fullPath, { cache: 'no-store' });
+        console.log(`Fetch response: status=${response.status}, ok=${response.ok}, url=${response.url}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+        }
+        const text = await response.clone().text();
+        console.log(`Raw response: ${text.substring(0, 300)}...`);
+        const data = await response.json();
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error('Invalid or empty JSON data');
+        }
+        flashcards = data;
+        console.log(`Loaded ${flashcards.length} flashcards`);
+        errorMessage.textContent = '';
+        errorMessage.classList.remove('text-gray-500');
+    } catch (error) {
+        console.error('Error loading flashcards:', error);
+        flashcards = [
+            { word: "こんにちは", meaning: "Hello", romaji: "konnichiwa" },
+            { word: "ありがとう", meaning: "Thank you", romaji: "arigatou" },
+            { word: "さようなら", meaning: "Goodbye", romaji: "sayonara" }
+        ];
+        errorMessage.textContent = `Failed to load flashcards. Using ${flashcards.length} fallback cards.`;
+        errorMessage.classList.add('text-red-700');
+        errorMessage.classList.remove('text-gray-500');
+        setTimeout(() => {
+            errorMessage.textContent = '';
+            errorMessage.classList.remove('text-red-700');
+        }, 3000);
+    }
     loadCard();
-    updateProgress();
 }
 
 function loadCard() {
@@ -37,7 +56,13 @@ function loadCard() {
     const romajiBackElement = document.getElementById('flashcard-romaji-back');
 
     if (!flashcardInner || !wordElement || !romajiFrontElement || !meaningElement || !romajiBackElement) {
-        console.error('Flashcard elements not found');
+        console.error('Flashcard elements not found:', {
+            flashcardInner: !!flashcardInner,
+            wordElement: !!wordElement,
+            romajiFrontElement: !!romajiFrontElement,
+            meaningElement: !!meaningElement,
+            romajiBackElement: !!romajiBackElement
+        });
         return;
     }
 
@@ -50,17 +75,12 @@ function loadCard() {
     }
 
     const card = flashcards[currentCard];
-    const progress = loadFlashcardProgress();
     if (showMeaning) {
         wordElement.textContent = '';
         romajiFrontElement.textContent = '';
         meaningElement.textContent = card.meaning;
         romajiBackElement.textContent = card.romaji ? `(${card.romaji})` : '';
         flashcardInner.parentElement.classList.add('flashcard-flipped');
-        if (!progress[currentCard]) {
-            saveFlashcardProgress(currentCard, true);
-            updateProgress();
-        }
     } else {
         wordElement.textContent = card.word;
         romajiFrontElement.textContent = card.romaji ? `(${card.romaji})` : '';
@@ -70,19 +90,14 @@ function loadCard() {
     }
 }
 
-function updateProgress() {
-    const progress = loadFlashcardProgress();
-    const learnedCount = Object.values(progress).filter(Boolean).length;
-    const totalCards = flashcards.length;
-    const progressPercent = totalCards ? Math.round((learnedCount / totalCards) * 100) : 0;
-    saveProgress('flashcards', progressPercent);
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const nextCardBtn = document.getElementById('next-card');
     const flipCardBtn = document.getElementById('flip-card');
     if (!nextCardBtn || !flipCardBtn) {
-        console.error('Button elements not found');
+        console.error('Button elements not found:', {
+            nextCard: !!nextCardBtn,
+            flipCard: !!flipCardBtn
+        });
         return;
     }
     loadFlashcards();

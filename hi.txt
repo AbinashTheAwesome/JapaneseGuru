@@ -52,3 +52,31 @@ V3
 │   └── writing.html
 └── dashboard/
     └── stats.html
+
+** V3 **
+/japanese-app-v3/
+├── assets/
+│   ├── css/
+│   │   ├── main.css
+│   │   └── dark.css
+│   ├── data/
+│   │   ├── hiragana.json
+│   │   ├── katakana.json
+│   │   ├── vocabulary.json
+│   │   └── kanji.json
+│   ├── js/
+│   │   ├── quiz.js
+│   │   ├── storage.js
+│   │   ├── dashboard.js
+│   │   └── flashcards.js
+├── videos/
+│   └── videos.html
+├── quiz/
+│   └── quiz.html
+├── vocabulary/
+│   └── flashcards.html
+├── practice/
+│   └── writing.html
+├── dashboard/
+│   └── stats.html
+└── index.html

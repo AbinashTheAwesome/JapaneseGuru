@@ -3,30 +3,75 @@ let currentQuestion = 0;
 let score = 0;
 let timer;
 const QUESTION_TIME = 10; // seconds
+const DATA_PATH = '../assets/data/'; // Relative path from quiz.html
 
-// Embedded hiragana data (replacing hiragana.json)
-const hiraganaData = [
-    { question: "What is the romaji for あ?", options: ["a", "i", "u", "e"], answer: "a", explanation: "The hiragana あ is pronounced as 'a'." },
-    { question: "What is the romaji for い?", options: ["a", "i", "u", "e"], answer: "i", explanation: "The hiragana い is pronounced as 'i'." },
-    { question: "What is the romaji for う?", options: ["u", "o", "e", "a"], answer: "u", explanation: "The hiragana う is pronounced as 'u'." },
-    { question: "What is the romaji for え?", options: ["e", "i", "o", "a"], answer: "e", explanation: "The hiragana え is pronounced as 'e'." },
-    { question: "What is the romaji for お?", options: ["o", "u", "a", "i"], answer: "o", explanation: "The hiragana お is pronounced as 'o'." }
-    // Add more as needed; truncated for brevity
-];
+const fallbackQuestions = {
+    hiragana: [
+        {
+            question: "What is the romaji for あ?",
+            options: ["a", "i", "u", "e"],
+            answer: "a",
+            explanation: "The hiragana あ is pronounced as 'a' in romaji."
+        },
+        {
+            question: "What does こんにちは mean?",
+            options: ["Good morning", "Hello", "Good night", "Thank you"],
+            answer: "Hello",
+            explanation: "こんにちは is a common greeting used during the day, meaning 'Hello'."
+        }
+    ],
+    katakana: [
+        {
+            question: "What is the romaji for ア?",
+            options: ["a", "i", "u", "e"],
+            answer: "a",
+            explanation: "The katakana ア is pronounced as 'a' in romaji."
+        },
+        {
+            question: "What is the katakana for 'ki'?",
+            options: ["カ", "キ", "ク", "ケ"],
+            answer: "キ",
+            explanation: "The katakana キ represents the sound 'ki' in romaji."
+        }
+    ]
+};
 
-// Embedded katakana data (replacing katakana.json)
-const katakanaData = [
-    { question: "What is the romaji for ア?", options: ["a", "i", "u", "e"], answer: "a", explanation: "The katakana ア is pronounced as 'a'." },
-    { question: "What is the romaji for イ?", options: ["a", "i", "u", "e"], answer: "i", explanation: "The katakana イ is pronounced as 'i'." },
-    { question: "What is the romaji for ウ?", options: ["u", "o", "e", "a"], answer: "u", explanation: "The katakana ウ is pronounced as 'u'." },
-    { question: "What is the romaji for エ?", options: ["e", "i", "o", "a"], answer: "e", explanation: "The katakana エ is pronounced as 'e'." },
-    { question: "What is the romaji for オ?", options: ["o", "u", "a", "i"], answer: "o", explanation: "The katakana オ is pronounced as 'o'." }
-    // Add more as needed; truncated for brevity
-];
-
-function loadQuestions(type) {
-    questions = type === 'katakana' ? [...katakanaData] : [...hiraganaData];
-    questions = questions.sort(() => Math.random() - 0.5).slice(0, 5); // Randomize and limit to 5
+async function loadQuestions(type) {
+    try {
+        const fullPath = `${DATA_PATH}${type}.json`;
+        console.log(`Attempting to load ${type} questions from ${window.location.origin}${fullPath}`);
+        const response = await fetch(fullPath, { cache: 'no-store' });
+        console.log(`Response status: ${response.status}, OK: ${response.ok}, URL: ${response.url}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+        }
+        const text = await response.clone().text();
+        console.log(`Raw response: ${text.substring(0, 300)}...`);
+        const data = await response.json();
+        if (!Array.isArray(data) || data.length === 0) {
+            throw new Error('Invalid or empty JSON data');
+        }
+        questions = data.sort(() => Math.random() - 0.5).slice(0, 5);
+        console.log(`Successfully loaded ${questions.length} ${type} questions`);
+    } catch (error) {
+        console.error(`Error loading ${type} quiz data:`, error);
+        questions = fallbackQuestions[type] || [];
+        if (questions.length === 0) {
+            document.getElementById('result').textContent = `No questions available for ${type}. Please check the data files or console for details.`;
+            document.getElementById('result').classList.add('text-red-500');
+            document.getElementById('question').textContent = '';
+            document.querySelectorAll('.option').forEach(btn => btn.style.display = 'none');
+            document.getElementById('progress').textContent = '';
+            return;
+        } else {
+            document.getElementById('result').textContent = `Failed to load ${type} data. Using ${questions.length} fallback questions. Check console for details: ${error.message}`;
+            document.getElementById('result').classList.add('text-yellow-500');
+            setTimeout(() => {
+                document.getElementById('result').textContent = '';
+                document.getElementById('result').classList.remove('text-yellow-500');
+            }, 3000);
+        }
+    }
     loadQuestion();
 }
 
@@ -46,7 +91,7 @@ function startTimer() {
 function loadQuestion() {
     clearInterval(timer);
     if (questions.length === 0) {
-        document.getElementById('question').textContent = "No questions available.";
+        document.getElementById('question').textContent = "No questions available. Please check the console or reload.";
         document.querySelectorAll('.option').forEach(btn => btn.style.display = 'none');
         document.getElementById('result').textContent = '';
         document.getElementById('progress').textContent = '';
@@ -92,11 +137,13 @@ function endQuiz() {
         <p>Your score: ${score}/${questions.length}</p>
         <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick="location.reload()">Restart</button>
         <a href="../index.html" class="cta-button inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Return Home</a>
+        <a href="../dashboard/stats.html" class="cta-button inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Stats</a>
     `;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const quizType = new URLSearchParams(window.location.search).get('type') || 'hiragana';
+    // Highlight the active quiz type button
     const hiraganaBtn = document.getElementById('hiragana-btn');
     const katakanaBtn = document.getElementById('katakana-btn');
     if (quizType === 'hiragana') {

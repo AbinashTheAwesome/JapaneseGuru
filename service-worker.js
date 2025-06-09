@@ -9,7 +9,6 @@ const urlsToCache = [
     '/assets/js/quiz.js',
     '/assets/js/canvas.js',
     '/assets/js/flashcards.js',
-    '/assets/js/dashboard.js',
     '/assets/data/hiragana.json',
     '/assets/data/katakana.json',
     '/assets/data/vocabulary.json',
