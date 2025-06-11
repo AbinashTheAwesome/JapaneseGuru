@@ -3,27 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanji Practice</title>
+    <title>Kanji Writing Practice</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../assets/css/main.css">
     <link rel="stylesheet" href="../assets/css/dark.css">
 </head>
 <body class="bg-gray-100">
     <header class="bg-green-600 text-white p-4 shadow-md">
-        <h1 class="text-2xl font-bold text-center">Kanji Practice</h1>
-        <nav class="flex justify-center gap-4 mt-2">
+        <h1 class="text-2xl font-bold text-center">Kanji Writing</h1>
+        <nav class="flex justify-center gap-4 mt-2" role="navigation">
             <a href="../index.html" class="px-3 py-2 rounded hover:bg-green-700">Home</a>
-            <a href="../videos/videos.html" class="px-3 py-2 rounded hover:bg-green-700">Videos</a>
-            <a href="../quiz/quiz.html" class="px-3 py-2 rounded hover:bg-green-700">Quiz</a>
+            <a href="../quiz/quiz.html" class="px-3 py-2 rounded hover:bg-green-700">Quizzes</a>
             <a href="../vocabulary/flashcards.html" class="px-3 py-2 rounded hover:bg-green-700">Flashcards</a>
         </nav>
     </header>
     <main class="max-w-4xl mx-auto p-4">
-        <div class="text-center">
-            <h2 class="text-2xl font-semibold mb-4">Kanji Writing Practice</h2>
-            <p class="text-gray-700 mb-4">Practice writing kanji characters here.</p>
-            <!-- Add kanji practice content here -->
+        <div class="writing-container relative animate-fade-in">
+            <canvas id="stroke-guide" class="stroke-guide" width="300" height="300"></canvas>
+            <canvas id="kanji-canvas" width="300" height="300"></canvas>
+            <div class="controls">
+                <button id="clear-btn" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Clear</button>
+                <span>Practice: </span>
+                <span id="current-kanji" class="text-2xl"></span>
+                <button id="next-kanji" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Next</button>
+            </div>
         </div>
     </main>
+    <script src="../assets/js/canvas.js"></script>
 </body>
 </html>
