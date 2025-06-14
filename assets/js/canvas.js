@@ -71,7 +71,7 @@ let currentKanji = 0;
 
 async function loadKanji() {
     try {
-        const response = await fetch('assets/data/kanji.json');
+        const response = await fetch('../assets/data/kanji.json');
         kanjiList = await response.json();
     } catch (error) {
         console.error('Error loading kanji data:', error);
@@ -82,6 +82,8 @@ async function loadKanji() {
     }
     drawStrokeGuide();
     document.getElementById('current-kanji').textContent = kanjiList[currentKanji].character;
+    document.getElementById('kanji-meaning').textContent = `(${kanjiList[currentKanji].meaning})`;
+
 }
 
 function drawStrokeGuide() {
@@ -100,7 +102,9 @@ function drawStrokeGuide() {
 function nextKanji() {
     currentKanji = (currentKanji + 1) % kanjiList.length;
     document.getElementById('current-kanji').textContent = kanjiList[currentKanji].character;
+    document.getElementById('kanji-meaning').textContent = `(${kanjiList[currentKanji].meaning})`;
     clearCanvas();
+
 }
 
 document.addEventListener('DOMContentLoaded', loadKanji);

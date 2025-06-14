@@ -67,7 +67,7 @@ V3
 │   ├── js/
 │   │   ├── quiz.js
 │   │   ├── storage.js
-│   │   ├── dashboard.js
+│   │   ├── tutorial.js
 │   │   └── flashcards.js
 ├── videos/
 │   └── videos.html

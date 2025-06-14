@@ -9,6 +9,7 @@ const urlsToCache = [
     '/assets/js/quiz.js',
     '/assets/js/canvas.js',
     '/assets/js/flashcards.js',
+    '/assets/js/tutorial.js',
     '/assets/data/hiragana.json',
     '/assets/data/katakana.json',
     '/assets/data/vocabulary.json',
@@ -16,7 +17,13 @@ const urlsToCache = [
     '/quiz/quiz.html',
     '/vocabulary/flashcards.html',
     '/practice/writing.html',
-    '/dashboard/stats.html'
+    '/tutorial/tutorial.html',
+    '/videos/videos.html',
+    '/assets/images/hiragana/',
+    '/assets/images/katakana/',
+    '/assets/js/hiragana-card.js',
+    '/assets/js/hiragana-data.js',
+    '/assets/js/audio-handler.js',
 ];
 
 self.addEventListener('install', event => {
