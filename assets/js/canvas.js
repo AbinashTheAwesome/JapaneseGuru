@@ -4,12 +4,14 @@ let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 
-ctx.fillStyle = 'white';
+// Initialize canvas
+ctx.fillStyle = 'white'; // Matches main.css #kanji-canvas background
 ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.strokeStyle = '#4CAF50';
+ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(); // Use --primary from main.css
 ctx.lineWidth = 5;
 ctx.lineCap = 'round';
 
+// Event listeners for drawing
 canvas.addEventListener('mousedown', startDrawing);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', stopDrawing);
@@ -61,42 +63,42 @@ function stopDrawing() {
 }
 
 function clearCanvas() {
-    ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? '#333' : 'white';
+    const theme = document.documentElement.getAttribute('data-theme') || 'light';
+    ctx.fillStyle = theme === 'dark' ? '#333' : 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    drawStrokeGuide();
 }
 
 let kanjiList = [];
 let currentKanji = 0;
 
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.textContent = message;
+    errorDiv.style.color = 'red';
+}
+
 async function loadKanji() {
     try {
         const response = await fetch('../assets/data/kanji.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
         kanjiList = await response.json();
+        console.log('Loaded kanji count:', kanjiList.length); // Debug log
+        if (kanjiList.length === 0) {
+            throw new Error('Kanji data is empty');
+        }
     } catch (error) {
         console.error('Error loading kanji data:', error);
+        showError('Failed to load kanji data. Using default set.');
         kanjiList = [
-            { character: '日', strokes: ['M50,10L50,90', 'M20,40H80'] },
-            { character: '月', strokes: ['M50,10L50,90', 'M20,40H80', 'M50,50L50,90', 'M20,60H80'] }
+            { character: '日', meaning: 'sun / day' },
+            { character: '月', meaning: 'moon / month' },
+            { character: '火', meaning: 'fire' }
         ];
     }
-    drawStrokeGuide();
     document.getElementById('current-kanji').textContent = kanjiList[currentKanji].character;
     document.getElementById('kanji-meaning').textContent = `(${kanjiList[currentKanji].meaning})`;
-
-}
-
-function drawStrokeGuide() {
-    const guideCanvas = document.getElementById('stroke-guide');
-    const guideCtx = guideCanvas.getContext('2d');
-    guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
-    guideCtx.strokeStyle = '#999';
-    guideCtx.lineWidth = 2;
-    const strokes = kanjiList[currentKanji].strokes;
-    strokes.forEach(stroke => {
-        const path = new Path2D(stroke);
-        guideCtx.stroke(path);
-    });
 }
 
 function nextKanji() {
@@ -104,7 +106,6 @@ function nextKanji() {
     document.getElementById('current-kanji').textContent = kanjiList[currentKanji].character;
     document.getElementById('kanji-meaning').textContent = `(${kanjiList[currentKanji].meaning})`;
     clearCanvas();
-
 }
 
 document.addEventListener('DOMContentLoaded', loadKanji);
