@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Grade Sheet Generator - School Marksheet Creator</title>
+  <meta name="description" content="Professional grade sheet generator for schools with manual data entry, customizable subjects, and print-ready marksheets">
+  <style>
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body { 
+  font-family: "Times New Roman", serif; 
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #1a1a1a; 
+  line-height: 1.4;
+}
+
+/* Container */
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  gap: 20px;
+}
+
+/* Left panel */
+.control-panel {
+  width: 400px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+  height: fit-content;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 16px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+  color: #3b82f6;
+  background: white;
+  border-bottom-color: #3b82f6;
+}
+
+.tab-button:hover {
+  background: #f1f5f9;
+}
+
+/* Tab content */
+.tab-content {
+  display: none;
+  padding: 24px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Form styles */
+h2 {
+  color: #1e293b;
+  margin-bottom: 20px;
+  font-size: 18px;
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 8px;
+}
+
+h3 {
+  color: #334155;
+  margin: 20px 0 12px 0;
+  font-size: 16px;
+}
+
+label { 
+  display: block; 
+  margin-bottom: 16px; 
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+input[type=text], 
+input[type=number], 
+input[type=file],
+select { 
+  width: 100%; 
+  padding: 12px 16px; 
+  margin-top: 6px; 
+  border: 2px solid #e2e8f0; 
+  border-radius: 8px; 
+  font-size: 14px;
+  transition: all 0.2s;
+  background: white;
+}
+
+input[type=text]:focus,
+input[type=number]:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.btn-small {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Cards */
+.card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-title {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Subject management */
+.subject-row {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.subject-row input {
+  margin-top: 0;
+}
+
+.subject-row .subject-name {
+  flex: 2;
+}
+
+.subject-row .subject-hours {
+  flex: 1;
+}
+
+/* Student data entry */
+.student-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.student-info {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.student-attendance {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.marks-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+
+.marks-grid-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+/* Grade scale */
+.grade-row {
+  display: grid;
+  grid-template-columns: 80px 80px 80px 80px auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Right panel - Preview */
+.preview-panel {
+  flex: 1;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  padding: 24px;
+  overflow-x: auto;
+}
+
+/* Print area */
+.print-area { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 20px; 
+  align-items: center; 
+}
+
+.marksheet { 
+  width: 210mm; 
+  min-height: 297mm; 
+  background: white; 
+  padding: 15mm; 
+  box-sizing: border-box; 
+  border: 3px solid #000; 
+  page-break-after: always; 
+  position: relative;
+  font-family: "Times New Roman", serif;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* Header */
+.sheet-header { 
+  border: 3px double #000; 
+  padding: 15px; 
+  background: white;
+  margin-bottom: 20px;
+}
+
+.header-content { 
+  display: flex; 
+  align-items: center; 
+  gap: 20px; 
+}
+
+.logo-container { 
+  width: 100px; 
+  flex-shrink: 0; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+}
+
+.logo-container img { 
+  max-width: 80px; 
+  max-height: 80px; 
+  object-fit: contain; 
+}
+
+.school-info { 
+  text-align: center; 
+  flex: 1; 
+  position: relative;
+  left: -60px;
+}
+
+.school-motto { 
+  font-style: italic; 
+  font-size: 14px; 
+  margin: 0; 
+  color: #000;
+}
+
+.school-name { 
+  font-weight: 700; 
+  font-size: 26px; 
+  letter-spacing: 1px; 
+  color: #000;
+  text-transform: uppercase;
+  margin: 4px 0;
+}
+
+.school-address { 
+  margin: 0; 
+  font-size: 14px; 
+  font-weight: 500;
+}
+
+.school-details {
+  margin: 0;
+  font-size: 12px;
+  color: #000;
+  font-weight: bold;
+}
+
+.sheet-title { 
+  margin: 8px 0 0 0; 
+  font-size: 18px; 
+  font-weight: 700; 
+  text-decoration: underline; 
+  color: #000;
+  letter-spacing: 2px;
+}
+
+/* Student info block */
+.student-info-block {
+  margin: 20px 0;
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 2px solid #000;
+  padding: 15px;
+  background: #f8fafc;
+}
+
+.info-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.info-row .left {
+  flex: 1;
+  text-align: left;
+}
+
+.info-row .center {
+  flex: 1;
+  text-align: center;
+}
+
+.info-row .right {
+  flex: 1;
+  text-align: right;
+}
+
+/* Marks table */
+.marks-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin: 20px 0; 
+  font-size: 13px; 
+  border: 2px solid #000;
+}
+
+.marks-table th, 
+.marks-table td { 
+  border: 1px solid #000; 
+  padding: 10px 8px; 
+  text-align: center; 
+}
+
+.marks-table th { 
+  background: #f8fafc; 
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.marks-table td:nth-child(2) { 
+  text-align: left; 
+  padding-left: 12px; 
+  font-weight: 500;
+}
+
+/* Summary */
+.summary-section { 
+  display: flex; 
+  justify-content: space-between; 
+  margin: 15px 0; 
+  font-weight: 700; 
+  font-size: 15px;
+  padding: 12px 20px;
+  background: #f8fafc;
+  border: 2px solid #000;
+}
+
+/* Grade table */
+.grade-reference { 
+  margin: 20px 0; 
+  border: 2px solid #000;
+  background: white;
+}
+
+.grade-reference .title { 
+  font-weight: 700; 
+  text-align: center;
+  font-size: 12px;
+  background: #f8fafc;
+  padding: 8px;
+  border-bottom: 1px solid #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.grade-reference table { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+
+.grade-reference td { 
+  border: 1px solid #000; 
+  text-align: center; 
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px;
+}
+
+.grade-reference .small { 
+  font-size: 10px; 
+  font-weight: 500;
+}
+
+/* Attendance and other info */
+.additional-info { 
+  margin: 15px 0; 
+  display: flex; 
+  gap: 30px; 
+  flex-wrap: wrap; 
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 20px;
+  background: #f8fafc;
+  border: 2px solid #000;
+}
+
+.remarks-section { 
+  margin: 15px 0; 
+  font-size: 14px; 
+  font-weight: 600;
+  padding: 12px 20px;
+  background: #f8fafc;
+  border: 2px solid #000;
+}
+
+/* Signatures */
+.signatures {
+  position: absolute;
+  bottom: 20mm;
+  left: 15mm;
+  width: calc(100% - 30mm);
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.signatures > div {
+  flex: 1;
+  margin: 0 15px;
+}
+
+.signature-line {
+  display: block;
+  margin-bottom: 10px;
+  border-top: 2px solid #000;
+  width: 120px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Toggle switches */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #3b82f6;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .container {
+    flex-direction: column;
+  }
+  
+  .control-panel {
+    width: auto;
+  }
+  
+  .student-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .student-attendance {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print styles */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body { 
+    background: none !important; 
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .control-panel { 
+    display: none !important; 
+  }
+
+  .container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .preview-panel {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+  }
+  
+  .marksheet { 
+    box-shadow: none !important; 
+    border: 4px solid #000 !important; 
+    padding: 10mm !important; 
+    margin: 0 !important;   
+    page-break-after: always !important; 
+    width: 200mm !important;
+    min-height: 280mm !important;
+    background: white !important;
+  }
+
+  .print-area {
+    gap: 0 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.font-bold { font-weight: bold; }
+.mb-4 { margin-bottom: 16px; }
+.mt-4 { margin-top: 16px; }
+.hidden { display: none; }
+
+/* Notifications */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: 2px solid #10b981;
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  z-index: 1000;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.notification.error {
+  border-color: #ef4444;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Panel - Controls -->
+    <div class="control-panel">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('school-settings')">🏫 School</button>
+        <button class="tab-button" onclick="switchTab('subjects')">📚 Subjects</button>
+        <button class="tab-button" onclick="switchTab('students')">👥 Students</button>
+        <button class="tab-button" onclick="switchTab('settings')">⚙️ Generate Result</button>
+      </div>
+
+      <!-- School Settings Tab -->
+      <div id="school-settings" class="tab-content active">
+        <h2>🏫 School Information</h2>
+        
+        <label>School Name
+          <input type="text" id="schoolName" value="BAGMATI SECONDARY SCHOOL" onchange="updatePreview()">
+        </label>
+
+        <label>School Motto
+          <input type="text" id="schoolMotto" value="Quality education is our Motto" onchange="updatePreview()">
+        </label>
+
+        <label>School Address
+          <input type="text" id="schoolAddress" value="Chandrapur-1, Rautahat" onchange="updatePreview()">
+        </label>
+
+        <label>Established
+          <input type="text" id="schoolEstd" value="ESTD: 2026" onchange="updatePreview()">
+        </label>
+
+        <label>IEMIS Code
+          <input type="text" id="schoolIemis" value="IEMIS Code: 9846554489451" onchange="updatePreview()">
+        </label>
+
+        <label>School Logo (optional)
+          <input type="file" id="logoInput" accept="image/*" onchange="handleLogoUpload(event)">
+        </label>
+
+        <label>Class/Grade
+          <input type="text" id="classGrade" value="10" onchange="updatePreview()">
+        </label>
+
+        <label>Term
+          <input type="text" id="term" value="First Term" onchange="updatePreview()">
+        </label>
+
+        <label>Year (B.S.)
+          <input type="text" id="year" value="2081" onchange="updatePreview()">
+        </label>
+
+        <label>Issue Date
+          <input type="date" id="issueDate" value="2081-01-01" onchange="updatePreview()">
+        </label>
+      </div>
+
+      <!-- Subjects Tab -->
+      <div id="subjects" class="tab-content">
+        <h2>📚 Subject Management</h2>
+        
+        <div id="subjectsContainer">
+          <!-- Subjects will be rendered here -->
+        </div>
+        
+        <button class="btn" onclick="addSubject()">➕ Add Subject</button>
+        
+        <h3>Grading Scale</h3>
+        <div id="gradeScaleContainer">
+          <!-- Grade scale will be rendered here -->
+        </div>
+        
+        <button class="btn btn-secondary" onclick="resetGradeScale()">🔄 Reset to Default</button>
+      </div>
+
+      <!-- Students Tab -->
+      <div id="students" class="tab-content">
+        <h2>👥 Student Data Entry</h2>
+        
+        <div class="btn-group">
+          <button class="btn" onclick="addStudent()">➕ Add Student</button>
+          <button class="btn btn-secondary" onclick="loadSampleData()">📝 Load Sample</button>
+          <button class="btn btn-danger" onclick="clearAllStudents()">🗑️ Clear All</button>
+        </div>
+        
+        <div id="studentsContainer">
+          <!-- Students will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="settings" class="tab-content">
+        <h2>⚙️ Display Settings</h2>
+        
+        <div class="toggle-container">
+          <span>Display Mode:</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="displayModeToggle" onchange="updatePreview()">
+            <span class="toggle-slider"></span>
+          </label>
+          <small>OFF: Marks | ON: Grades</small>
+        </div>
+
+        <div class="toggle-container">
+          <span>Show Percentage:</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showPercentageToggle" onchange="updatePreview()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn" onclick="generateResults()">🎯 Generate Results</button>
+          <button class="btn btn-secondary" onclick="printResults()">🖨️ Print</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Preview -->
+    <div class="preview-panel">
+      <div id="printArea" class="print-area">
+        <!-- Preview will be generated here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let schoolData = {
+      name: "BAGMATI SECONDARY SCHOOL",
+      motto: "Quality education is our Motto",
+      address: "Chandrapur-1, Rautahat",
+      estd: "ESTD: 2026",
+      iemis: "IEMIS Code: 9846554489451",
+      logo: null,
+      class: "10",
+      term: "First Term",
+      year: "2081",
+      issueDate: "2081-01-01"
+    };
+
+    let subjects = [
+      { name: "Mathematics", creditHours: 5, theoryFull: 75, practicalFull: 25, theoryPass: 32, practicalPass: 8 },
+      { name: "Science", creditHours: 4, theoryFull: 75, practicalFull: 25, theoryPass: 32, practicalPass: 8 },
+      { name: "English", creditHours: 4, theoryFull: 75, practicalFull: 25, theoryPass: 32, practicalPass: 8 },
+      { name: "Nepali", creditHours: 3, theoryFull: 75, practicalFull: 25, theoryPass: 32, practicalPass: 8 },
+      { name: "Social Studies", creditHours: 4, theoryFull: 75, practicalFull: 25, theoryPass: 32, practicalPass: 8 }
+    ];
+
+    let students = [];
+
+    let gradeScale = [
+      { grade: 'A+', min: 90, max: 100, gp: 4.0 },
+      { grade: 'A', min: 80, max: 90, gp: 3.6 },
+      { grade: 'B+', min: 70, max: 80, gp: 3.2 },
+      { grade: 'B', min: 60, max: 70, gp: 2.8 },
+      { grade: 'C+', min: 50, max: 60, gp: 2.4 },
+      { grade: 'C', min: 40, max: 50, gp: 2.0 },
+      { grade: 'D', min: 35, max: 40, gp: 1.6 },
+      { grade: 'NG', min: 0, max: 35, gp: 0.0 }
+    ];
+
+    // Utility functions
+    function showNotification(message, isError = false) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${isError ? 'error' : ''}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add('show'), 100);
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 300);
+      }, 3000);
+    }
+
+    function switchTab(tabName) {
+      // Remove active class from all tabs and content
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Add active class to selected tab and content
+      document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+    }
+
+    function updatePreview() {
+      // Update school data from inputs
+      schoolData.name = document.getElementById('schoolName').value;
+      schoolData.motto = document.getElementById('schoolMotto').value;
+      schoolData.address = document.getElementById('schoolAddress').value;
+      schoolData.estd = document.getElementById('schoolEstd').value;
+      schoolData.iemis = document.getElementById('schoolIemis').value;
+      schoolData.class = document.getElementById('classGrade').value;
+      schoolData.term = document.getElementById('term').value;
+      schoolData.year = document.getElementById('year').value;
+      schoolData.issueDate = document.getElementById('issueDate').value;
+      
+      generatePreview();
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          schoolData.logo = e.target.result;
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Subject management
+    function renderSubjects() {
+      const container = document.getElementById('subjectsContainer');
+      container.innerHTML = '';
+      
+      subjects.forEach((subject, index) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="card-header">
+            <span class="card-title">${subject.name}</span>
+            <button class="btn btn-danger btn-small" onclick="removeSubject(${index})">🗑️</button>
+          </div>
+          <div class="subject-row">
+            <div>
+              <label>Subject Name</label>
+              <input type="text" value="${subject.name}" onchange="updateSubject(${index}, 'name', this.value)">
+            </div>
+            <div>
+              <label>Credit Hours</label>
+              <input type="number" value="${subject.creditHours}" onchange="updateSubject(${index}, 'creditHours', this.value)">
+            </div>
+          </div>
+          <div class="subject-row">
+            <div>
+              <label>Theory Full Marks</label>
+              <input type="number" value="${subject.theoryFull}" onchange="updateSubject(${index}, 'theoryFull', this.value)">
+            </div>
+            <div>
+              <label>Theory Pass Marks</label>
+              <input type="number" value="${subject.theoryPass}" onchange="updateSubject(${index}, 'theoryPass', this.value)">
+            </div>
+          </div>
+          <div class="subject-row">
+            <div>
+              <label>Practical Full Marks</label>
+              <input type="number" value="${subject.practicalFull}" onchange="updateSubject(${index}, 'practicalFull', this.value)">
+            </div>
+            <div>
+              <label>Practical Pass Marks</label>
+              <input type="number" value="${subject.practicalPass}" onchange="updateSubject(${index}, 'practicalPass', this.value)">
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addSubject() {
+      subjects.push({
+        name: "New Subject",
+        creditHours: 3,
+        theoryFull: 75,
+        practicalFull: 25,
+        theoryPass: 32,
+        practicalPass: 8
+      });
+      renderSubjects();
+      renderStudents(); // Re-render students to include new subject
+    }
+
+    function removeSubject(index) {
+      if (confirm('Are you sure you want to remove this subject?')) {
+        subjects.splice(index, 1);
+        renderSubjects();
+        renderStudents(); // Re-render students to remove subject marks
+      }
+    }
+
+    function updateSubject(index, field, value) {
+      subjects[index][field] = isNaN(value) ? value : Number(value);
+      renderStudents(); // Re-render students when subjects change
+    }
+
+    // Grade scale management
+    function renderGradeScale() {
+      const container = document.getElementById('gradeScaleContainer');
+      container.innerHTML = '';
+      
+      gradeScale.forEach((grade, index) => {
+        const div = document.createElement('div');
+        div.className = 'grade-row';
+        div.innerHTML = `
+          <input type="text" value="${grade.grade}" onchange="updateGrade(${index}, 'grade', this.value)">
+          <input type="number" value="${grade.min}" onchange="updateGrade(${index}, 'min', this.value)">
+          <input type="number" value="${grade.max}" onchange="updateGrade(${index}, 'max', this.value)">
+          <input type="number" step="0.1" value="${grade.gp}" onchange="updateGrade(${index}, 'gp', this.value)">
+          ${index < gradeScale.length - 1 ? `<button class="btn btn-danger btn-small" onclick="removeGrade(${index})">🗑️</button>` : '<div></div>'}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateGrade(index, field, value) {
+      gradeScale[index][field] = isNaN(value) ? value : Number(value);
+    }
+
+    function removeGrade(index) {
+      gradeScale.splice(index, 1);
+      renderGradeScale();
+    }
+
+    function resetGradeScale() {
+      gradeScale = [
+        { grade: 'A+', min: 90, max: 100, gp: 4.0 },
+        { grade: 'A', min: 80, max: 90, gp: 3.6 },
+        { grade: 'B+', min: 70, max: 80, gp: 3.2 },
+        { grade: 'B', min: 60, max: 70, gp: 2.8 },
+        { grade: 'C+', min: 50, max: 60, gp: 2.4 },
+        { grade: 'C', min: 40, max: 50, gp: 2.0 },
+        { grade: 'D', min: 35, max: 40, gp: 1.6 },
+        { grade: 'NG', min: 0, max: 35, gp: 0.0 }
+      ];
+      renderGradeScale();
+    }
+
+    // Student management
+    function renderStudents() {
+      const container = document.getElementById('studentsContainer');
+      container.innerHTML = '';
+      
+      students.forEach((student, index) => {
+        const div = document.createElement('div');
+        div.className = 'student-card';
+        
+        let marksHTML = '';
+        subjects.forEach((subject, subIndex) => {
+          const marks = student.marks[subIndex] || { theory: 0, practical: 0 };
+          marksHTML += `
+            <div class="marks-grid">
+              <span>${subject.name}</span>
+              <input type="number" value="${marks.theory}" min="0" max="${subject.theoryFull}" 
+                     onchange="updateStudentMarks(${index}, ${subIndex}, 'theory', this.value)">
+              <input type="number" value="${marks.practical}" min="0" max="${subject.practicalFull}" 
+                     onchange="updateStudentMarks(${index}, ${subIndex}, 'practical', this.value)">
+            </div>
+          `;
+        });
+
+        div.innerHTML = `
+          <div class="card-header">
+            <span class="card-title">Student ${index + 1}</span>
+            <button class="btn btn-danger btn-small" onclick="removeStudent(${index})">🗑️</button>
+          </div>
+          
+          <div class="student-info">
+            <div>
+              <label>Roll Number</label>
+              <input type="text" value="${student.rollNo}" onchange="updateStudent(${index}, 'rollNo', this.value)">
+            </div>
+            <div>
+              <label>Full Name</label>
+              <input type="text" value="${student.name}" onchange="updateStudent(${index}, 'name', this.value)">
+            </div>
+          </div>
+
+          <div class="student-attendance">
+            <div>
+              <label>Total Days</label>
+              <input type="number" value="${student.attendance.total}" onchange="updateStudentAttendance(${index}, 'total', this.value)">
+            </div>
+            <div>
+              <label>Present</label>
+              <input type="number" value="${student.attendance.present}" onchange="updateStudentAttendance(${index}, 'present', this.value)">
+            </div>
+            <div>
+              <label>Absent</label>
+              <input type="number" value="${student.attendance.absent}" onchange="updateStudentAttendance(${index}, 'absent', this.value)">
+            </div>
+          </div>
+
+          <h4>Subject Marks</h4>
+          <div class="marks-grid-header">
+            <span>Subject</span>
+            <span>Theory</span>
+            <span>Practical</span>
+          </div>
+          ${marksHTML}
+        `;
+        
+        container.appendChild(div);
+      });
+    }
+
+    function addStudent() {
+      const newStudent = {
+        rollNo: (students.length + 1).toString(),
+        name: `Student ${students.length + 1}`,
+        attendance: { total: 220, present: 210, absent: 10 },
+        marks: subjects.map(() => ({ theory: 0, practical: 0 }))
+      };
+      students.push(newStudent);
+      renderStudents();
+    }
+
+    function removeStudent(index) {
+      if (confirm('Are you sure you want to remove this student?')) {
+        students.splice(index, 1);
+        renderStudents();
+      }
+    }
+
+    function updateStudent(index, field, value) {
+      students[index][field] = value;
+    }
+
+    function updateStudentAttendance(index, field, value) {
+      students[index].attendance[field] = Number(value);
+    }
+
+    function updateStudentMarks(studentIndex, subjectIndex, type, value) {
+      if (!students[studentIndex].marks[subjectIndex]) {
+        students[studentIndex].marks[subjectIndex] = { theory: 0, practical: 0 };
+      }
+      students[studentIndex].marks[subjectIndex][type] = Number(value);
+    }
+
+    function loadSampleData() {
+      students = [];
+      for (let i = 1; i <= 5; i++) {
+        const student = {
+          rollNo: i.toString(),
+          name: `Student ${i}`,
+          attendance: { total: 220, present: 210 - i, absent: 10 + i },
+          marks: subjects.map((subject, j) => ({
+            theory: Math.max(20, Math.min(subject.theoryFull, 60 + Math.random() * 30 - j * 2)),
+            practical: Math.max(10, Math.min(subject.practicalFull, 18 + Math.random() * 7 - j))
+          }))
+        };
+        students.push(student);
+      }
+      renderStudents();
+      showNotification('Sample data loaded successfully!');
+    }
+
+    function clearAllStudents() {
+      if (confirm('Are you sure you want to clear all student data?')) {
+        students = [];
+        renderStudents();
+        document.getElementById('printArea').innerHTML = '';
+        showNotification('All student data cleared.');
+      }
+    }
+
+    // Grade calculation
+    function calculateGrade(percentage) {
+      for (const grade of gradeScale) {
+        if (percentage >= grade.min && percentage <= grade.max) {
+          return { grade: grade.grade, gp: grade.gp };
+        }
+      }
+      return { grade: 'NG', gp: 0.0 };
+    }
+
+    function getRemarks(gpa) {
+      if (gpa >= 3.6) return 'Excellent';
+      if (gpa >= 3.2) return 'Very Good';
+      if (gpa >= 2.8) return 'Good';
+      if (gpa >= 2.4) return 'Satisfactory';
+      if (gpa >= 2.0) return 'Pass';
+      return 'Needs Improvement';
+    }
+
+    // Results generation
+    function generateResults() {
+      if (students.length === 0) {
+        showNotification('Please add some students first.', true);
+        return;
+      }
+
+      const processedStudents = students.map(student => {
+        const processedSubjects = subjects.map((subject, index) => {
+          const marks = student.marks[index] || { theory: 0, practical: 0 };
+          
+          const theoryPercent = (marks.theory / subject.theoryFull) * 100;
+          const practicalPercent = (marks.practical / subject.practicalFull) * 100;
+          const totalPercent = ((marks.theory + marks.practical) / (subject.theoryFull + subject.practicalFull)) * 100;
+          
+          const theoryPass = marks.theory >= subject.theoryPass;
+          const practicalPass = marks.practical >= subject.practicalPass;
+          const overallPass = theoryPass && practicalPass;
+          
+          const grade = overallPass ? calculateGrade(totalPercent) : { grade: 'NG', gp: 0.0 };
+          
+          return {
+            name: subject.name,
+            creditHours: subject.creditHours,
+            theoryMarks: marks.theory,
+            practicalMarks: marks.practical,
+            theoryPercent,
+            practicalPercent,
+            totalPercent,
+            grade: grade.grade,
+            gp: grade.gp,
+            pass: overallPass,
+            remarks: getRemarks(grade.gp)
+          };
+        });
+
+        const totalGPA = processedSubjects.reduce((sum, subject) => sum + subject.gp, 0) / processedSubjects.length;
+        const totalMarks = processedSubjects.reduce((sum, subject) => sum + subject.theoryMarks + subject.practicalMarks, 0);
+        const totalMaxMarks = subjects.reduce((sum, subject) => sum + subject.theoryFull + subject.practicalFull, 0);
+        const overallPass = processedSubjects.every(subject => subject.pass);
+
+        return {
+          ...student,
+          subjects: processedSubjects,
+          gpa: totalGPA,
+          totalMarks,
+          totalMaxMarks,
+          pass: overallPass
+        };
+      });
+
+      // Rank students (only those who passed)
+      const passedStudents = processedStudents.filter(s => s.pass);
+      passedStudents.sort((a, b) => b.gpa - a.gpa || b.totalMarks - a.totalMarks);
+      passedStudents.forEach((student, index) => {
+        student.rank = index + 1;
+      });
+
+      // Set rank for failed students
+      processedStudents.forEach(student => {
+        if (!student.pass) {
+          student.rank = '-';
+        }
+      });
+
+      generateMarksheets(processedStudents);
+      showNotification(`Generated ${processedStudents.length} marksheet(s) successfully!`);
+    }
+
+    function generateMarksheets(processedStudents) {
+      const printArea = document.getElementById('printArea');
+      printArea.innerHTML = '';
+
+      processedStudents.forEach(student => {
+        const marksheet = createMarksheet(student);
+        printArea.appendChild(marksheet);
+      });
+    }
+
+    function createMarksheet(student) {
+      const displayGrades = document.getElementById('displayModeToggle').checked;
+      const showPercentage = document.getElementById('showPercentageToggle').checked;
+
+      const marksheet = document.createElement('div');
+      marksheet.className = 'marksheet';
+
+      let subjectRows = '';
+      student.subjects.forEach((subject, index) => {
+        const theoryDisplay = displayGrades ? calculateGrade(subject.theoryPercent).grade : subject.theoryMarks;
+        const practicalDisplay = displayGrades ? calculateGrade(subject.practicalPercent).grade : subject.practicalMarks;
+        
+        subjectRows += `
+          <tr>
+            <td>${index + 1}</td>
+            <td style="text-align:left;padding-left:12px">${subject.name}</td>
+            <td>${subject.creditHours}</td>
+            <td>${theoryDisplay}</td>
+            <td>${practicalDisplay}</td>
+            <td>${subject.grade}</td>
+            <td>${subject.gp.toFixed(2)}</td>
+            <td>${subject.remarks}</td>
+          </tr>
+        `;
+      });
+
+      let gradeTableRows = '';
+      gradeScale.forEach(grade => {
+        gradeTableRows += `<td>${grade.grade}</td>`;
+      });
+      gradeTableRows += '</tr><tr>';
+      gradeScale.forEach(grade => {
+        gradeTableRows += `<td>${grade.gp}</td>`;
+      });
+      gradeTableRows += '</tr><tr class="small">';
+      gradeScale.forEach(grade => {
+        gradeTableRows += `<td>${grade.min}${grade.max < 100 ? '–<' + grade.max : '–100'}</td>`;
+      });
+
+      const gpaDisplay = showPercentage ? 
+        `${student.gpa.toFixed(2)} (${((student.totalMarks / student.totalMaxMarks) * 100).toFixed(1)}%)` : 
+        student.gpa.toFixed(2);
+
+      marksheet.innerHTML = `
+        <div class="sheet-header">
+          <div class="header-content">
+            <div class="logo-container">
+              ${schoolData.logo ? `<img src="${schoolData.logo}" alt="School Logo">` : ''}
+            </div>
+            <div class="school-info">
+              <div class="school-motto">"${schoolData.motto}"</div>
+              <div class="school-name">${schoolData.name}</div>
+              <div class="school-address">${schoolData.address}</div>
+              <div class="school-details">${schoolData.estd}</div>
+              <div class="school-details">${schoolData.iemis}</div>
+              <div class="sheet-title">GRADE SHEET</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="student-info-block">
+          <div class="info-row">
+            <div class="left"><strong>Name:</strong> ${student.name}</div>
+            <div class="center"><strong>Class:</strong> ${schoolData.class}</div>
+            <div class="right"><strong>Roll No:</strong> ${student.rollNo}</div>
+          </div>
+          <div class="info-row">
+            <div class="left"><strong>Term:</strong> ${schoolData.term}</div>
+            <div class="right"><strong>Year (B.S.):</strong> ${schoolData.year}</div>
+          </div>
+        </div>
+
+        <table class="marks-table">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Subject</th>
+              <th>Credit Hours</th>
+              <th>TH</th>
+              <th>PR</th>
+              <th>Grade</th>
+              <th>GPA</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${subjectRows}
+          </tbody>
+        </table>
+
+        <div class="summary-section">
+          <div>GPA: ${gpaDisplay}</div>
+          <div>Rank: ${student.rank === '-' ? '-' : `${student.rank} / ${processedStudents.filter(s => s.pass).length}`}</div>
+          <div>Total Marks: ${student.totalMarks} / ${student.totalMaxMarks}</div>
+        </div>
+
+        <div class="grade-reference">
+          <div class="title">GRADE TABLE</div>
+          <table>
+            <tr>${gradeTableRows}</tr>
+          </table>
+        </div>
+
+        <div class="additional-info">
+          <div><strong>Attendance:</strong> Total Days: ${student.attendance.total}</div>
+          <div>Present: ${student.attendance.present}</div>
+          <div>Absent: ${student.attendance.absent}</div>
+        </div>
+
+        <div class="remarks-section">
+          <div>Issue Date: ${schoolData.issueDate}</div>
+          <div>Remarks: ${student.pass ? 'Student has successfully completed the requirements.' : 'Student needs to improve in failing subjects.'}</div>
+        </div>
+
+        <div class="signatures">
+          <div>
+            <span class="signature-line"></span>
+            Class Teacher
+          </div>
+          <div>
+            <span class="signature-line"></span>
+            School Seal
+          </div>
+          <div>
+            <span class="signature-line"></span>
+            Principal
+          </div>
+        </div>
+      `;
+
+      return marksheet;
+    }
+
+    function generatePreview() {
+      if (students.length > 0) {
+        generateResults();
+      } else {
+        // Show blank preview
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = `
+          <div class="marksheet">
+            <div class="sheet-header">
+              <div class="header-content">
+                <div class="logo-container">
+                  ${schoolData.logo ? `<img src="${schoolData.logo}" alt="School Logo">` : ''}
+                </div>
+                <div class="school-info">
+                  <div class="school-motto">"${schoolData.motto}"</div>
+                  <div class="school-name">${schoolData.name}</div>
+                  <div class="school-address">${schoolData.address}</div>
+                  <div class="school-details">${schoolData.estd}</div>
+                  <div class="school-details">${schoolData.iemis}</div>
+                  <div class="sheet-title">GRADE SHEET</div>
+                </div>
+              </div>
+            </div>
+            <div class="student-info-block">
+              <div class="info-row">
+                <div class="left"><strong>Name:</strong> [Student Name]</div>
+                <div class="center"><strong>Class:</strong> ${schoolData.class}</div>
+                <div class="right"><strong>Roll No:</strong> [Roll No]</div>
+              </div>
+              <div class="info-row">
+                <div class="left"><strong>Term:</strong> ${schoolData.term}</div>
+                <div class="right"><strong>Year (B.S.):</strong> ${schoolData.year}</div>
+              </div>
+            </div>
+            <p style="text-align: center; margin: 40px 0; color: #666; font-style: italic;">
+              Add students to see the grade sheet preview
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    function printResults() {
+      window.print();
+    }
+
+    // Initialize the application
+    function initApp() {
+      renderSubjects();
+      renderGradeScale();
+      renderStudents();
+      generatePreview();
+    }
+
+    // Start the application when page loads
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
