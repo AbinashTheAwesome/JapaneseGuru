@@ -1,1300 +1,954 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admit Card Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        /* Base Styles */
-        body {
-            font-family: 'Times New Roman', Times, serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f7fa;
-            color: #000;
-        }
-
-        html {
-            height: auto;
-        }
-
-        /* Layout */
-        .ui-container {
-            display: grid;
-            grid-template-columns: 400px 1fr;
-            gap: 40px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .input-panel {
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            min-width: 300px;
-        }
-
-        .preview-panel {
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            overflow-y: auto;
-            max-height: 90vh;
-            height: auto;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .pagination button {
-            background: #2c3e50;
-            color: #fff;
-        }
-
-        /* Results section */
-        .results-section {
-            background: #f8f9fa;
-            border: 2px dashed #dee2e6;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .results-section.active {
-            background: #fff;
-            border: 2px solid #28a745;
-        }
-
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 25px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid #eee;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #000;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="file"],
-        input[type="tel"],
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-            box-sizing: border-box;
-        }
-
-        .date-inputs {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .date-inputs input {
-            flex: 1;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .schedule-input-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .schedule-input-row input[type="text"] {
-            flex: 2;
-        }
-
-        .schedule-input-row input[type="date"] {
-            flex: 1.5;
-        }
-
-        .schedule-input-row button {
-            flex: 1;
-            background: #e74c3c;
-            color: #fff;
-        }
-
-        /* Modal */
-        #columnMappingModal, #printConfirmModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 500px;
-            width: 90%;
-            overflow-y: auto;
-            max-height: 80vh;
-        }
-
-        .modal-content select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        .modal-content button {
-            margin: 10px 5px;
-        }
-
-        /* Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-        }
-
-        #addSubjectBtn, #confirmMapping, #prevPage, #nextPage {
-            background: #2c3e50;
-            color: #fff;
-        }
-
-        #generateBtn {
-            background: #2c3e50;
-            color: #fff;
-        }
-
-        #printBtn, #pdfBtn, #confirmPrint {
-            background: #2ecc71;
-            color: #fff;
-        }
-
-        #resetBtn, #cancelPrint {
-            background: #e74c3c;
-            color: #fff;
-        }
-
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        /* Admit Card Styling */
-        .cards-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .card-pair {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            page-break-after: always;
-        }
-
-        .admit-card {
-            width: 210mm;
-            height: 148.5mm;
-            padding: 12mm;
-            margin: 0 auto;
-            background: white;
-            border: 2pt solid #000;
-            position: relative;
-            box-sizing: border-box;
-            font-family: 'Times New Roman', serif;
-        }
-
-        .school-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .school-logo {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            border: 2px solid #000;
-            padding: 5px;
-            background: white;
-        }
-
-        .header-text {
-            flex: 1;
-            text-align: center;
-        }
-
-        .school-name {
-            font-size: 24pt;
-            margin: 0;
-            color: #000;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .motto {
-            font-style: italic;
-            color: #000;
-            margin: 5px 0;
-            font-size: 14pt;
-        }
-
-        .address {
-            margin: 0;
-            color: #000;
-            font-size: 14pt;
-        }
-
-        .admit-card h2 {
-            text-align: center;
-            margin: 15px 0;
-            color: #000;
-            font-size: 20pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 3px solid #000;
-            padding-bottom: 8px;
-        }
-
-        .student-info {
-            margin: 15px 0;
-            font-size: 16pt;
-            line-height: 1.6;
-        }
-
-        .student-info p {
-            margin: 8px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .student-info .label {
-            font-weight: bold;
-            min-width: 120px;
-        }
-
-        .student-info .value {
-            flex: 1;
-            text-align: right;
-            border-bottom: 1px solid #000;
-            padding-bottom: 2px;
-        }
-
-        .student-photo {
-            position: absolute;
-            right: 15mm;
-            top: 35mm;
-            width: 80px;
-            height: 100px;
-            border: 2px solid #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-        }
-
-        .student-photo img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: cover;
-        }
-
-        .signatures {
-            position: absolute;
-            bottom: 15mm;
-            left: 12mm;
-            right: 12mm;
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            border-top: 2px solid #000;
-            padding-top: 10px;
-        }
-
-        .signature-section {
-            text-align: center;
-            width: 30%;
-        }
-
-        .contact-section {
-            text-align: center;
-            width: 35%;
-            font-size: 14pt;
-            font-weight: bold;
-        }
-
-        .signatures img {
-            height: 60px;
-            margin-bottom: 5px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .signatures p {
-            margin: 0;
-            font-size: 12pt;
-            font-weight: bold;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
-
-        /* Back Page Styling */
-        .back-page .exam-schedule {
-            margin: 20px 0;
-        }
-
-        .back-page .exam-schedule table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .back-page .exam-schedule th,
-        .back-page .exam-schedule td {
-            border: 2px solid #000;
-            padding: 12px;
-            text-align: center;
-            font-size: 14pt;
-        }
-
-        .back-page .exam-schedule th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-
-        .back-page .exam-rules {
-            margin: 20px 0;
-        }
-
-        .back-page .exam-rules h3 {
-            font-size: 18pt;
-            color: #000;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-            text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 5px;
-        }
-
-        .back-page ol {
-            margin: 15px 0;
-            padding-left: 30px;
-            font-size: 14pt;
-            line-height: 1.5;
-        }
-
-        .back-page ol li {
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .class-teacher {
-            position: absolute;
-            bottom: 15mm;
-            left: 12mm;
-            right: 12mm;
-            display: flex;
-            justify-content: space-between;
-            align-items: end;
-            border-top: 2px solid #000;
-            padding-top: 10px;
-        }
-
-        .class-teacher h3 {
-            margin: 0;
-            font-size: 16pt;
-            color: #000;
-            font-weight: bold;
-        }
-
-        .class-teacher p {
-            margin: 5px 0 0 0;
-            font-size: 14pt;
-        }
-
-        .teacher-sig {
-            text-align: center;
-        }
-
-        .teacher-sig img {
-            height: 60px;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .teacher-sig p {
-            margin: 0;
-            font-size: 12pt;
-            font-weight: bold;
-            border-top: 1px solid #000;
-            padding-top: 5px;
-        }
-
-        /* Print Styles */
-        @media print {
-            @page {
-                size: A4 portrait;
-                margin: 0;
-            }
-
-            body {
-                margin: 0;
-                padding: 0;
-                background: #fff !important;
-            }
-            
-            .input-panel, 
-            .pagination, 
-            #columnMappingModal, 
-            #printConfirmModal,
-            .results-section {
-                display: none !important;
-            }
-            
-            .ui-container {
-                display: block;
-                grid-template-columns: none;
-            }
-            
-            .preview-panel {
-                padding: 0;
-                box-shadow: none;
-                height: auto;
-                overflow: visible;
-                background: white !important;
-            }
-            
-            .admit-card {
-                background: white !important;
-                box-shadow: none !important;
-                margin: 0 auto 15mm;
-                border: 2pt solid #000 !important;
-            }
-
-            .card-pair {
-                page-break-after: always;
-            }
-
-            .card-pair:last-child {
-                page-break-after: auto;
-            }
-
-            /* Ensure black and white printing */
-            * {
-                color: #000 !important;
-                background: white !important;
-            }
-
-            .admit-card {
-                background: white !important;
-            }
-
-            .school-logo, 
-            .student-photo,
-            .signatures img,
-            .teacher-sig img {
-                filter: grayscale(100%) !important;
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .ui-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .preview-panel {
-                max-height: none;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .modal-content {
-                padding: 15px;
-                width: 95%;
-            }
-
-            .modal-content button {
-                width: 100%;
-                margin: 10px 0;
-            }
-
-            .admit-card {
-                width: 100%;
-                height: auto;
-                min-height: 400px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marksheet Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    .container {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+    }
+    .ui-left {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ui-left label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .ui-left input, .ui-left button {
+      width: 100%;
+      padding: 5px;
+      margin-top: 3px;
+    }
+    .ui-right {
+      flex: 1;
+    }
+    .marksheet {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 10mm auto;
+      padding: 10mm;
+      border: 1px solid #000;
+      page-break-after: always;
+    }
+    .sheet-top {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .logo-slot {
+      width: 80px;
+      height: 80px;
+      margin-right: 20px;
+    }
+    .logo-img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+    .heading-block {
+      flex: 1;
+      text-align: center;
+    }
+    .motto, .school-name, .address, .estd, .iemis, .sheet-title {
+      font-size: 14px;
+      margin: 5px 0;
+    }
+    .school-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .sheet-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .student-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .student-info div {
+      flex: 1 1 30%;
+    }
+    .marks-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .marks-table th, .marks-table td {
+      border: 1px solid #000;
+      padding: 5px;
+      text-align: center;
+    }
+    .marks-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+    }
+    .ascii-frame {
+      border: 2px solid #000;
+      padding: 10px;
+    }
+    @media print {
+      .container {
+        display: block;
+      }
+      .ui-left {
+        display: none;
+      }
+      .marksheet {
+        margin: 5mm;
+        border: none;
+        transform: scale(0.95);
+        transform-origin: top left;
+      }
+      .edit-marksheet-btn {
+        display: none;
+      }
+    }
+    .subject-input, .subject-mapping {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .subject-input input, .subject-mapping select, .subject-mapping input {
+      flex: 1;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-content label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div class="ui-container">
-        <div class="input-panel">
-            <h1>Admit Card Generator</h1>
-            
-            <section class="form-group">
-                <h2>School Information</h2>
-                <label for="schoolName">School Name</label>
-                <input type="text" id="schoolName" value="BAGMATI SECONDARY SCHOOL" aria-label="School Name">
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="includeMotto" checked>
-                    <label for="includeMotto">Include Motto</label>
-                </div>
-                <label for="schoolMotto">Motto</label>
-                <input type="text" id="schoolMotto" value="Quality education is our Motto" aria-label="School Motto">
-                
-                <label for="schoolAddress">Address</label>
-                <input type="text" id="schoolAddress" value="Chandrapur-1, Rautahat" aria-label="School Address">
-                
-                <label for="schoolContact">Contact Number</label>
-                <input type="tel" id="schoolContact" value="9876543210" aria-label="School Contact Number">
-                
-                <label for="schoolLogo">Logo (Optional)</label>
-                <input type="file" id="schoolLogo" accept="image/*" aria-label="School Logo Upload">
-            </section>
+  <div class="container">
+    <div class="ui-left">
+      <h3>🏫 School Information</h3>
+      <label>School Name <input id="schoolNameInput" value="BAGMATI SECONDARY SCHOOL"></label>
+      <label>Motto <input id="schoolMottoInput" value="Quality education is our Motto"></label>
+      <label>Address <input id="schoolAddressInput" value="Chandrapur-1, Rautahat"></label>
+      <label>Established <input id="estdInput" value="2020"></label>
+      <label>IEMIS Code <input id="iemisInput" value="9846554489451"></label>
 
-            <section class="form-group">
-                <h2>Student Data</h2>
-                <label for="studentData">Upload Excel File (.xlsx)</label>
-                <input type="file" id="studentData" accept=".xlsx,.xls" aria-label="Student Data Excel Upload">
-                
-                <div id="columnMappingModal" style="display: none;">
-                    <div class="modal-content">
-                        <h3>Map Excel Columns</h3>
-                        <label for="mapRoll">Roll Number</label>
-                        <select id="mapRoll" aria-label="Map Roll Number"></select>
-                        
-                        <label for="mapName">Student Name</label>
-                        <select id="mapName" aria-label="Map Student Name"></select>
-                        
-                        <label for="mapClass">Class</label>
-                        <select id="mapClass" aria-label="Map Class"></select>
-                        
-                        <label for="mapSection">Section</label>
-                        <select id="mapSection" aria-label="Map Section"></select>
-                        
-                        <label for="mapGuardian">Guardian Name</label>
-                        <select id="mapGuardian" aria-label="Map Guardian Name"></select>
-                        
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="includeGuardianContact" checked>
-                            <label for="includeGuardianContact">Include Guardian Contact</label>
-                        </div>
-                        <label for="mapGuardianContact">Guardian Contact</label>
-                        <select id="mapGuardianContact" aria-label="Map Guardian Contact"></select>
-                        
-                        <label for="mapSchedule">Schedule (Optional)</label>
-                        <select id="mapSchedule" aria-label="Map Schedule"></select>
-                        
-                        <button id="confirmMapping" role="button">Confirm Mapping</button>
-                    </div>
-                </div>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="includePhotos">
-                    <label for="includePhotos">Include student photos</label>
-                </div>
-                
-                <div id="photoUploadContainer" style="display: none;">
-                    <label for="studentPhotos">Upload Photos (ZIP)</label>
-                    <input type="file" id="studentPhotos" accept=".zip" aria-label="Student Photos ZIP Upload">
-                </div>
-            </section>
+      <h3>📚 Academic Details</h3>
+      <label>Term <input id="termInput" value="First Term"></label>
+      <label>Year <input id="yearInput" value="2081"></label>
+      <label>Class <input id="classInput" value="10"></label>
+      <label>Pass Theory <input id="passTheoryInput" type="number" value="32"></label>
+      <label>Pass Practical <input id="passPracticalInput" type="number" value="8"></label>
+      <label>Full Theory <input id="fullTheoryInput" type="number" value="75"></label>
+      <label>Full Practical <input id="fullPracticalInput" type="number" value="25"></label>
+      <label>Issue Date
+        <input id="issueYearInput" type="number" value="2081" style="width:4rem">
+        <input id="issueMonthInput" type="number" value="08" style="width:3rem">
+        <input id="issueDayInput" type="number" value="20" style="width:3rem">
+      </label>
 
-            <section class="form-group">
-                <h2>Exam Information</h2>
-                <label for="classInput">Class</label>
-                <input type="text" id="classInput" value="10" aria-label="Class">
-                
-                <label>Exam Period</label>
-                <div class="date-inputs">
-                    <input type="date" id="examStartDate" aria-label="Exam Start Date" required>
-                    <span>to</span>
-                    <input type="date" id="examEndDate" aria-label="Exam End Date" required>
-                </div>
+      <h3>📚 Subjects</h3>
+      <div id="subjectContainer"></div>
+      <button type="button" id="addSubjectBtn">➕ Add Subject</button>
 
-                <label for="startDay">Start Day of Week</label>
-                <select id="startDay" aria-label="Start Day of Week">
-                    <option value="0">Sunday</option>
-                    <option value="1">Monday</option>
-                    <option value="2">Tuesday</option>
-                    <option value="3">Wednesday</option>
-                    <option value="4">Thursday</option>
-                    <option value="5">Friday</option>
-                    <option value="6">Saturday</option>
-                </select>
+      <h3>📂 Data Input</h3>
+      <label>Upload Excel/CSV
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+      </label>
+      <label>Subject Column Mapping (optional)
+        <div id="subjectMappingContainer"></div>
+        <button type="button" id="confirmSubjectMapping" style="display:none">Confirm Mapping</button>
+      </label>
+      <button type="button" id="loadSampleBtn">📊 Load Sample</button>
 
-                <label for="teacherPhone">Class Teacher Phone</label>
-                <input type="tel" id="teacherPhone" value="9876543210" aria-label="Class Teacher Phone">
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="includeTeacherSig">
-                    <label for="includeTeacherSig">Include class teacher signature</label>
-                </div>
-                
-                <label for="teacherSig">Class Teacher Signature</label>
-                <input type="file" id="teacherSig" accept="image/*" aria-label="Class Teacher Signature Upload">
-                
-                <label>Exam Schedule</label>
-                <div id="scheduleInputs"></div>
-                <button id="addSubjectBtn" type="button" role="button">Add Subject</button>
-            </section>
-
-            <section class="form-group">
-                <h2>Signatures</h2>
-                <label for="principalSig">Principal's Signature</label>
-                <input type="file" id="principalSig" accept="image/*" aria-label="Principal Signature Upload">
-                
-                <label for="coordinatorSig">Exam Coordinator</label>
-                <input type="file" id="coordinatorSig" accept="image/*" aria-label="Exam Coordinator Signature Upload">
-            </section>
-
-            <div class="action-buttons">
-                <button id="generateBtn" role="button">Generate Cards</button>
-            </div>
-        </div>
-
-        <div class="preview-panel">
-            <div class="results-section" id="resultsSection">
-                <h3>Results will appear here</h3>
-                <p>Click "Generate Cards" to create admit cards</p>
-                <div class="action-buttons" id="resultsButtons" style="display: none;">
-                    <button id="printBtn" role="button">Print All</button>
-                    <button id="pdfBtn" role="button">Export PDF</button>
-                    <button id="resetBtn" role="button">Reset</button>
-                </div>
-            </div>
-            <div id="previewArea"></div>
-            <div class="pagination">
-                <button id="prevPage" disabled role="button">Previous</button>
-                <button id="nextPage" disabled role="button">Next</button>
-            </div>
-        </div>
+      <h3>⚙️ Display Options</h3>
+      <label><input type="checkbox" id="displayModeToggle"> Show Grades Instead of Marks</label>
+      <label><input type="checkbox" id="showPercentageToggle" checked> Show Percentage with GPA</label>
+      <button type="button" id="generateBtn">📈 Generate Results</button>
     </div>
-
-    <div id="printConfirmModal" style="display: none;">
-        <div class="modal-content">
-            <h3>Confirm Print</h3>
-            <p id="printSummary"></p>
-            <button id="confirmPrint" role="button">Print</button>
-            <button id="cancelPrint" role="button">Cancel</button>
-        </div>
+    <div class="ui-right">
+      <div id="printArea"></div>
     </div>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // DOM Elements
-            const generateBtn = document.getElementById('generateBtn');
-            const printBtn = document.getElementById('printBtn');
-            const pdfBtn = document.getElementById('pdfBtn');
-            const resetBtn = document.getElementById('resetBtn');
-            const previewArea = document.getElementById('previewArea');
-            const resultsSection = document.getElementById('resultsSection');
-            const resultsButtons = document.getElementById('resultsButtons');
-            const includePhotosCheck = document.getElementById('includePhotos');
-            const photoUploadContainer = document.getElementById('photoUploadContainer');
-            const addSubjectBtn = document.getElementById('addSubjectBtn');
-            const scheduleInputs = document.getElementById('scheduleInputs');
-            const columnMappingModal = document.getElementById('columnMappingModal');
-            const confirmMapping = document.getElementById('confirmMapping');
-            const prevPage = document.getElementById('prevPage');
-            const nextPage = document.getElementById('nextPage');
-            const printConfirmModal = document.getElementById('printConfirmModal');
-            const confirmPrint = document.getElementById('confirmPrint');
-            const cancelPrint = document.getElementById('cancelPrint');
-            
-            // Data storage
-            let schoolLogo = null;
-            let principalSignature = null;
-            let coordinatorSignature = null;
-            let teacherSignature = null;
-            let studentData = [];
-            let studentPhotos = {};
-            let examSchedule = [];
-            let columnMap = {};
-            let currentPage = 0;
-            const cardsPerPage = 2; // Two cards per page
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal" style="display:none">
+    <div class="modal-content">
+      <h3>Edit Marksheet</h3>
+      <div id="editForm"></div>
+      <button type="button" id="saveEditBtn">Save Changes</button>
+      <button type="button" id="cancelEditBtn">Cancel</button>
+    </div>
+  </div>
 
-            // Initialize
-            includePhotosCheck.addEventListener('change', function() {
-                photoUploadContainer.style.display = this.checked ? 'block' : 'none';
-            });
+  <template id="marksheet-template">
+    <div class="marksheet">
+      <div class="sheet-top ascii-frame">
+        <div class="logo-slot"><img class="logo-img" src="" alt="Logo" style="display:none"></div>
+        <div class="heading-block">
+          <div class="motto">"Quality education is our Motto"</div>
+          <div class="school-name">BAGMATI SECONDARY SCHOOL</div>
+          <div class="address">Chandrapur-1, Rautahat</div>
+          <div class="estd">[ESTD : 2020]</div>
+          <div class="iemis">IEMIS Code : 9846554489451</div>
+          <div class="sheet-title">GRADE SHEET</div>
+        </div>
+      </div>
+      <div class="student-info">
+        <div>Name: <span class="st-name">Student Name</span></div>
+        <div>Class: <span class="st-class">10</span></div>
+        <div>Roll: <span class="st-roll">1</span></div>
+        <div>Term: <span class="st-term">First Term</span></div>
+        <div>Year: <span class="st-year">2081</span></div>
+      </div>
+      <table class="marks-table">
+        <thead>
+          <tr>
+            <th>SN</th>
+            <th>Subject</th>
+            <th>CR</th>
+            <th>TH</th>
+            <th>PR</th>
+            <th>Grade</th>
+            <th>GP</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+        <tbody class="marks-body"></tbody>
+      </table>
+      <div class="marks-footer">
+        <div class="marks-footer-left">
+          <div>Total Marks: <span class="st-total-marks">0</span> / <span class="st-total-max">0</span></div>
+          <div>GPA: <span class="st-gpa">0.00</span></div>
+          <div>Rank: <span class="st-rank">-</span></div>
+        </div>
+        <div class="marks-footer-right">
+          <div>Total Days: <span class="att-total">-</span></div>
+          <div>Present: <span class="att-present">-</span></div>
+          <div>Absent: <span class="att-absent">-</span></div>
+          <div>Issue Date: <span class="issue-date">-</span></div>
+        </div>
+      </div>
+      <div class="signatures">
+        <div>Class Teacher</div>
+        <div>Principal</div>
+      </div>
+      <button type="button" class="edit-marksheet-btn">Edit Marksheet</button>
+    </div>
+  </template>
 
-            document.getElementById('teacherSig').addEventListener('change', handleSignatureUpload.bind(null, 'teacher'));
-            addSubjectBtn.addEventListener('click', addSubjectInput);
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const schoolNameInput = document.getElementById('schoolNameInput');
+    const schoolMottoInput = document.getElementById('schoolMottoInput');
+    const schoolAddressInput = document.getElementById('schoolAddressInput');
+    const estdInput = document.getElementById('estdInput');
+    const iemisInput = document.getElementById('iemisInput');
+    const termInput = document.getElementById('termInput');
+    const yearInput = document.getElementById('yearInput');
+    const classInput = document.getElementById('classInput');
+    const passTheoryInput = document.getElementById('passTheoryInput');
+    const passPracticalInput = document.getElementById('passPracticalInput');
+    const fullTheoryInput = document.getElementById('fullTheoryInput');
+    const fullPracticalInput = document.getElementById('fullPracticalInput');
+    const issueYearInput = document.getElementById('issueYearInput');
+    const issueMonthInput = document.getElementById('issueMonthInput');
+    const issueDayInput = document.getElementById('issueDayInput');
+    const subjectContainer = document.getElementById('subjectContainer');
+    const addSubjectBtn = document.getElementById('addSubjectBtn');
+    const loadSampleBtn = document.getElementById('loadSampleBtn');
+    const displayModeToggle = document.getElementById('displayModeToggle');
+    const showPercentageToggle = document.getElementById('showPercentageToggle');
+    const generateBtn = document.getElementById('generateBtn');
+    const printArea = document.getElementById('printArea');
+    const subjectMappingContainer = document.getElementById('subjectMappingContainer');
+    const confirmSubjectMappingBtn = document.getElementById('confirmSubjectMapping');
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editForm');
+    const saveEditBtn = document.getElementById('saveEditBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-            // Event Listeners
-            document.getElementById('schoolLogo').addEventListener('change', handleLogoUpload);
-            document.getElementById('studentData').addEventListener('change', handleStudentDataUpload);
-            document.getElementById('principalSig').addEventListener('change', handleSignatureUpload.bind(null, 'principal'));
-            document.getElementById('coordinatorSig').addEventListener('change', handleSignatureUpload.bind(null, 'coordinator'));
-            document.getElementById('studentPhotos').addEventListener('change', handlePhotoUpload);
-            generateBtn.addEventListener('click', generateAdmitCards);
-            printBtn.addEventListener('click', showPrintConfirm);
-            pdfBtn.addEventListener('click', generatePDF);
-            resetBtn.addEventListener('click', resetForm);
-            prevPage.addEventListener('click', () => changePage(-1));
-            nextPage.addEventListener('click', () => changePage(1));
-            confirmPrint.addEventListener('click', () => { printConfirmModal.style.display = 'none'; printAdmitCards(); });
-            cancelPrint.addEventListener('click', () => { printConfirmModal.style.display = 'none'; });
+    let creditHourMap = {};
+    let importedData = [];
+    let studentsByClass = {};
 
-            // Helper Functions
-            function isImage(file) {
-                return /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+    function toNum(val) {
+      if (typeof val === 'number') return val;
+      if (typeof val === 'string') {
+        const num = parseFloat(val.replace(/[^0-9.]/g, ''));
+        return isNaN(num) ? 0 : num;
+      }
+      return 0;
+    }
+
+    function gradeFromPercent(percent) {
+      if (percent >= 90) return { grade: 'A+', gp: 4.0 };
+      if (percent >= 80) return { grade: 'A', gp: 3.6 };
+      if (percent >= 70) return { grade: 'B+', gp: 3.2 };
+      if (percent >= 60) return { grade: 'B', gp: 2.8 };
+      if (percent >= 50) return { grade: 'C+', gp: 2.4 };
+      if (percent >= 40) return { grade: 'C', gp: 2.0 };
+      if (percent >= 20) return { grade: 'D', gp: 1.6 };
+      return { grade: 'NG', gp: 0 };
+    }
+
+    function remarkFromGP(gp) {
+      if (gp >= 3.6) return 'Outstanding';
+      if (gp >= 3.2) return 'Excellent';
+      if (gp >= 2.8) return 'Very Good';
+      if (gp >= 2.0) return 'Good';
+      if (gp >= 1.6) return 'Satisfactory';
+      return 'Needs Improvement';
+    }
+
+    function detectSubjectsFromHeaders(row) {
+      const keys = Object.keys(row);
+      const subjMap = {};
+      const userSubjects = Object.keys(creditHourMap).map(s => s.toLowerCase());
+
+      const patterns = [
+        /^Subject_(.+?)(_TH|_PR)?$/i,
+        /^(.+?)\s*(Theory|Practical|TH|PR)$/i,
+        /^(.+?)$/i
+      ];
+
+      keys.forEach(k => {
+        let matched = false;
+        for (const pattern of patterns) {
+          const m = k.match(pattern);
+          if (m) {
+            let base = m[1] ? m[1].replace(/_/g, ' ').trim() : k.trim();
+            const normalizedBase = base.toLowerCase();
+            const matchedSubject = userSubjects.find(us => 
+              normalizedBase.includes(us) || us.includes(normalizedBase)
+            );
+            base = matchedSubject ? Object.keys(creditHourMap).find(s => s.toLowerCase() === matchedSubject) : base;
+
+            if (!subjMap[base]) subjMap[base] = {};
+            if (m[2] && /Theory|TH/i.test(m[2])) subjMap[base].thKey = k;
+            else if (m[2] && /Practical|PR/i.test(m[2])) subjMap[base].prKey = k;
+            else if (!m[2]) subjMap[base].nameKey = k;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched && !['Roll', 'Name', 'Class', 'Term', 'Year', 'IssueDate', 'TotalDays', 'Present', 'Absent', 'Remarks'].some(h => k.toLowerCase().includes(h.toLowerCase()))) {
+          if (typeof row[k] === 'number' || (typeof row[k] === 'string' && !isNaN(parseFloat(row[k])))) {
+            const base = k.replace(/_/g, ' ').trim();
+            const normalizedBase = base.toLowerCase();
+            const matchedSubject = userSubjects.find(us => 
+              normalizedBase.includes(us) || us.includes(normalizedBase)
+            );
+            const finalBase = matchedSubject ? Object.keys(creditHourMap).find(s => s.toLowerCase() === matchedSubject) : base;
+            if (!subjMap[finalBase]) subjMap[finalBase] = { nameKey: k };
+          }
+        }
+      });
+
+      const order = [];
+      keys.forEach(k => {
+        for (const base in subjMap) {
+          if (subjMap[base].nameKey === k || subjMap[base].thKey === k || subjMap[base].prKey === k) {
+            if (!order.includes(base)) order.push(base);
+          }
+        }
+      });
+
+      return order.map(base => ({
+        base,
+        nameKey: subjMap[base].nameKey || null,
+        thKey: subjMap[base].thKey || null,
+        prKey: subjMap[base].prKey || null
+      }));
+    }
+
+    function addSubjectInput(subject = '', hours = 3) {
+      const div = document.createElement('div');
+      div.className = 'subject-input';
+      div.innerHTML = `
+        <input type="text" class="subject-name" value="${subject}" placeholder="Subject name" required>
+        <input type="number" class="subject-hours" value="${hours}" placeholder="Credit hours" min="1" required>
+        <button type="button" class="remove-subject-btn">×</button>
+      `;
+      subjectContainer.appendChild(div);
+      
+      div.querySelector('.remove-subject-btn').addEventListener('click', () => {
+        div.remove();
+        updateCreditHourMap();
+      });
+      
+      div.querySelector('.subject-name').addEventListener('change', () => {
+        const name = div.querySelector('.subject-name').value.trim();
+        if (name && Object.keys(creditHourMap).some(s => s.toLowerCase() === name.toLowerCase() && s !== name)) {
+          alert('Subject name already exists (case-insensitive)');
+          div.querySelector('.subject-name').value = '';
+        }
+        updateCreditHourMap();
+      });
+      div.querySelector('.subject-hours').addEventListener('change', updateCreditHourMap);
+    }
+
+    function updateCreditHourMap() {
+      creditHourMap = {};
+      document.querySelectorAll('.subject-input').forEach(subjDiv => {
+        const name = subjDiv.querySelector('.subject-name').value.trim();
+        const hours = parseInt(subjDiv.querySelector('.subject-hours').value);
+        if (name && !isNaN(hours) && hours > 0) {
+          creditHourMap[name] = hours;
+        }
+      });
+    }
+
+    addSubjectBtn.addEventListener('click', () => addSubjectInput());
+
+    fileInput.addEventListener('change', (ev) => {
+      const file = ev.target.files[0];
+      if (!file) return;
+      
+      const name = file.name.toLowerCase();
+      const fileSizeMB = file.size / (1024 * 1024);
+      
+      if (fileSizeMB > 5) {
+        alert("File too large. Maximum size is 5MB.");
+        return;
+      }
+      
+      try {
+        if (name.endsWith('.csv')) {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (res) => {
+              if (res.errors.length > 0) {
+                alert(`CSV parsing errors:\n${res.errors.map(e => e.message).join("\n")}`);
+                return;
+              }
+              if (!res.data || res.data.length === 0) {
+                alert("CSV file is empty or couldn't be parsed");
+                return;
+              }
+              
+              if (!res.meta.fields.includes('Roll') && !res.meta.fields.includes('roll')) {
+                alert("CSV must contain a 'Roll' column");
+                return;
+              }
+              
+              importedData = res.data;
+              showSubjectMapping(res.meta.fields);
+            },
+            error: (error) => {
+              alert(`CSV parsing failed: ${error.message}`);
             }
+          });
+        } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = new Uint8Array(e.target.result);
+              const workbook = XLSX.read(data, { type: 'array' });
+              let allData = [];
 
-            function formatDate(dateStr) {
-                if (!dateStr) return '';
-                const date = new Date(dateStr);
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}-${month}-${year}`;
-            }
+              workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const sheetData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-            function getDayLabel(index) {
-                const suffixes = ['th', 'st', 'nd', 'rd'];
-                const mod = (index + 1) % 10;
-                const suffix = (index + 1) % 100 >= 11 && (index + 1) % 100 <= 13 ? 'th' : suffixes[mod] || 'th';
-                return `${index + 1}${suffix} Day`;
-            }
-
-            function getWeekday(dateStr, startDayIndex) {
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                const date = new Date(dateStr);
-                const startDate = new Date(document.getElementById('examStartDate').value);
-                const dayDiff = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
-                const weekdayIndex = (startDayIndex + dayDiff) % 7;
-                return days[weekdayIndex];
-            }
-
-            function addSubjectInput() {
-                if (examSchedule.length >= 10) {
-                    alert('Maximum 10 subjects allowed');
+                if (sheetData && sheetData.length > 0) {
+                  const firstRow = sheetData[0];
+                  if (!('Roll' in firstRow) && !('roll' in firstRow)) {
+                    alert(`Sheet "${sheetName}" must contain a 'Roll' column`);
                     return;
+                  }
+                  sheetData.forEach(row => {
+                    row['Class'] = row['Class'] || row['class'] || row['Grade'] || sheetName;
+                  });
+                  allData = allData.concat(sheetData);
                 }
-                const row = document.createElement('div');
-                row.className = 'schedule-input-row';
-                row.innerHTML = `
-                    <input type="text" class="subject-input" placeholder="Subject" aria-label="Subject Name">
-                    <input type="date" class="subject-date" aria-label="Subject Exam Date">
-                    <button type="button" class="remove-subject" role="button" tabindex="0">Remove</button>
-                `;
-                scheduleInputs.appendChild(row);
-                row.querySelector('.remove-subject').addEventListener('click', () => {
-                    row.remove();
-                });
+              });
+
+              if (!allData || allData.length === 0) {
+                alert("Excel file is empty or couldn't be parsed");
+                return;
+              }
+
+              importedData = allData;
+              const headers = Object.keys(allData[0]);
+              showSubjectMapping(headers);
+            } catch (e) {
+              alert(`Excel parsing failed: ${e.message}`);
             }
+          };
+          reader.onerror = () => {
+            alert("Error reading Excel file");
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          alert('Unsupported file type. Please upload a .csv or .xlsx file.');
+        }
+      } catch (e) {
+        alert(`Error processing file: ${e.message}`);
+      }
+    });
 
-            function populateColumnMapping(headers) {
-                const selects = ['mapRoll', 'mapName', 'mapClass', 'mapSection', 'mapGuardian', 'mapGuardianContact', 'mapSchedule'];
-                selects.forEach(id => {
-                    const select = document.getElementById(id);
-                    select.innerHTML = '<option value="">Select Column</option>';
-                    headers.forEach(header => {
-                        const option = document.createElement('option');
-                        option.value = header.toLowerCase();
-                        option.textContent = header;
-                        select.appendChild(option);
-                    });
-                });
-                columnMappingModal.style.display = 'block';
-            }
+    function showSubjectMapping(headers) {
+      subjectMappingContainer.innerHTML = '';
+      const potentialSubjectHeaders = headers.filter(h => 
+        !['Roll', 'Name', 'Class', 'Term', 'Year', 'IssueDate', 'TotalDays', 'Present', 'Absent', 'Remarks']
+          .some(protected => h.toLowerCase().includes(protected.toLowerCase()))
+      );
 
-            // File Handlers
-            function handleLogoUpload(e) {
-                const file = e.target.files[0];
-                if (!file || !isImage(file)) {
-                    alert('Please upload a valid image file (jpg, jpeg, png, gif)');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    schoolLogo = event.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
+      potentialSubjectHeaders.forEach(header => {
+        const div = document.createElement('div');
+        div.className = 'subject-mapping';
+        div.innerHTML = `
+          <label>Column: ${header}
+            <select class="subject-mapping-select">
+              <option value="">Ignore</option>
+              ${Object.keys(creditHourMap).map(s => `<option value="${s}">${s}</option>`).join('')}
+              <option value="custom">Custom Subject</option>
+            </select>
+            <input type="text" class="custom-subject-name" placeholder="Enter subject name" style="display:none">
+          </label>
+        `;
+        subjectMappingContainer.appendChild(div);
 
-            function handleSignatureUpload(type, e) {
-                const file = e.target.files[0];
-                if (!file || !isImage(file)) {
-                    alert('Please upload a valid image file (jpg, jpeg, png, gif)');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    if (type === 'principal') {
-                        principalSignature = event.target.result;
-                    } else if (type === 'coordinator') {
-                        coordinatorSignature = event.target.result;
-                    } else {
-                        teacherSignature = event.target.result;
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-
-            function handleStudentDataUpload(e) {
-                const file = e.target.files[0];
-                if (!file || (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls'))) {
-                    alert('Please upload an Excel file (.xlsx or .xls)');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const data = new Uint8Array(event.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rawData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                    const headers = rawData[0];
-                    studentData = rawData.slice(1).map(row => {
-                        const normalizedRow = {};
-                        headers.forEach((header, i) => {
-                            normalizedRow[header.toLowerCase()] = row[i];
-                        });
-                        return normalizedRow;
-                    });
-                    populateColumnMapping(headers);
-                };
-                reader.readAsArrayBuffer(file);
-            }
-
-            function handlePhotoUpload(e) {
-                const file = e.target.files[0];
-                if (!file || !file.name.endsWith('.zip')) {
-                    alert('Please upload a ZIP file');
-                    return;
-                }
-                JSZip.loadAsync(file).then(zip => {
-                    const promises = [];
-                    zip.forEach((relPath, zipEntry) => {
-                        if (!zipEntry.dir && isImage({name: relPath})) {
-                            const promise = zipEntry.async('base64').then(content => {
-                                const ext = relPath.split('.').pop().toLowerCase();
-                                const roll = relPath.split('.')[0];
-                                studentPhotos[roll] = `data:image/${ext};base64,${content}`;
-                            });
-                            promises.push(promise);
-                        }
-                    });
-                    return Promise.all(promises);
-                }).then(() => {
-                    alert('Photos processed successfully');
-                }).catch(err => {
-                    console.error(err);
-                    alert('Error processing ZIP file: ' + err.message);
-                });
-            }
-
-            confirmMapping.addEventListener('click', () => {
-                columnMap = {
-                    roll: document.getElementById('mapRoll').value,
-                    name: document.getElementById('mapName').value,
-                    class: document.getElementById('mapClass').value,
-                    section: document.getElementById('mapSection').value,
-                    guardian: document.getElementById('mapGuardian').value,
-                    guardianContact: document.getElementById('includeGuardianContact').checked ? document.getElementById('mapGuardianContact').value : null,
-                    schedule: document.getElementById('mapSchedule').value
-                };
-                if (!columnMap.roll || !columnMap.name) {
-                    alert('Please map Roll Number and Student Name');
-                    return;
-                }
-                columnMappingModal.style.display = 'none';
-            });
-
-            // Card Generation
-            function generateAdmitCards() {
-                if (studentData.length === 0 || Object.keys(columnMap).length === 0) {
-                    alert('Please upload and map student data first');
-                    return;
-                }
-                
-                const schoolName = document.getElementById('schoolName').value.trim();
-                const includeMotto = document.getElementById('includeMotto').checked;
-                const schoolMotto = includeMotto ? document.getElementById('schoolMotto').value.trim() : '';
-                const schoolAddress = document.getElementById('schoolAddress').value.trim();
-                const schoolContact = document.getElementById('schoolContact').value.trim();
-                const className = document.getElementById('classInput').value.trim();
-                const startDateInput = document.getElementById('examStartDate');
-                const endDateInput = document.getElementById('examEndDate');
-                let examStart = startDateInput.value;
-                let examEnd = endDateInput.value;
-                const startDayIndex = parseInt(document.getElementById('startDay').value);
-                const teacherPhone = document.getElementById('teacherPhone').value.trim();
-                const includeTeacherSig = document.getElementById('includeTeacherSig').checked;
-                const includePhotos = includePhotosCheck.checked;
-                const includeGuardianContact = document.getElementById('includeGuardianContact').checked;
-
-                // Validation
-                if (!schoolName || !schoolAddress || !schoolContact || !className || !examStart || !examEnd || !teacherPhone) {
-                    alert('Please fill in all required fields');
-                    return;
-                }
-
-                // Collect schedule
-                examSchedule = [];
-                const subjectRows = scheduleInputs.querySelectorAll('.schedule-input-row');
-                for (const row of subjectRows) {
-                    const subject = row.querySelector('.subject-input').value.trim();
-                    const date = row.querySelector('.subject-date').value;
-                    if (subject && date) {
-                        examSchedule.push({ subject, date });
-                    }
-                }
-
-                if (examSchedule.length === 0) {
-                    alert('Please add at least one subject');
-                    return;
-                }
-
-                // Show results section
-                resultsSection.classList.add('active');
-                resultsSection.innerHTML = `
-                    <h3>Admit Cards Generated Successfully!</h3>
-                    <p>Total Cards: ${studentData.length} | Pages: ${Math.ceil(studentData.length / cardsPerPage)}</p>
-                `;
-                resultsButtons.style.display = 'flex';
-
-                // Generate cards
-                const formattedStartDate = formatDate(examStart);
-                const formattedEndDate = formatDate(examEnd);
-                const examDates = `${formattedStartDate} - ${formattedEndDate}`;
-                
-                previewArea.innerHTML = '';
-                const fragment = document.createDocumentFragment();
-                const cardsContainer = document.createElement('div');
-                cardsContainer.className = 'cards-container';
-
-                // Generate cards for current page
-                const startIndex = currentPage * cardsPerPage;
-                const endIndex = Math.min(startIndex + cardsPerPage, studentData.length);
-
-                for (let i = startIndex; i < endIndex; i++) {
-                    const student = studentData[i];
-                    const cardPair = document.createElement('div');
-                    cardPair.className = 'card-pair';
-
-                    // Front card
-                    const frontCard = createFrontCard(student, {
-                        schoolName, schoolMotto, schoolAddress, schoolContact,
-                        className, examDates, includeMotto, includePhotos, includeGuardianContact
-                    });
-
-                    // Back card  
-                    const backCard = createBackCard({
-                        examSchedule, teacherPhone, includeTeacherSig, startDayIndex
-                    });
-
-                    cardPair.appendChild(frontCard);
-                    cardPair.appendChild(backCard);
-                    cardsContainer.appendChild(cardPair);
-                }
-
-                fragment.appendChild(cardsContainer);
-                previewArea.appendChild(fragment);
-
-                // Update pagination
-                const totalPages = Math.ceil(studentData.length / cardsPerPage);
-                prevPage.disabled = currentPage === 0;
-                nextPage.disabled = currentPage === totalPages - 1;
-            }
-
-            function createFrontCard(student, config) {
-                const card = document.createElement('div');
-                card.className = 'admit-card front-card';
-                
-                card.innerHTML = `
-                    <div class="school-header">
-                        ${schoolLogo ? `<img class="school-logo" src="${schoolLogo}" alt="${config.schoolName} Logo">` : ''}
-                        <div class="header-text">
-                            <h1 class="school-name">${config.schoolName}</h1>
-                            ${config.includeMotto ? `<p class="motto">"${config.schoolMotto}"</p>` : ''}
-                            <p class="address">${config.schoolAddress}</p>
-                        </div>
-                    </div>
-                    <h2>ADMIT CARD</h2>
-                    <div class="student-info">
-                        <p><span class="label">Name:</span><span class="value">${student[columnMap.name] || ''}</span></p>
-                        <p><span class="label">Roll No:</span><span class="value">${student[columnMap.roll] || ''}</span></p>
-                        <p><span class="label">Class:</span><span class="value">${student[columnMap.class] || config.className}-${student[columnMap.section] || ''}</span></p>
-                        ${config.includeGuardianContact ? `
-                            <p><span class="label">Guardian:</span><span class="value">${student[columnMap.guardian] || ''}</span></p>
-                            <p><span class="label">Contact:</span><span class="value">${student[columnMap.guardianContact] || ''}</span></p>
-                        ` : ''}
-                        <p><span class="label">Valid:</span><span class="value">${config.examDates}</span></p>
-                    </div>
-                    ${config.includePhotos ? `
-                        <div class="student-photo">
-                            ${studentPhotos[student[columnMap.roll]] 
-                                ? `<img src="${studentPhotos[student[columnMap.roll]]}" alt="${student[columnMap.name]} Photo">`
-                                : '<span>Photo Not Available</span>'
-                            }
-                        </div>
-                    ` : ''}
-                    <div class="signatures">
-                        <div class="signature-section">
-                            ${principalSignature ? `<img src="${principalSignature}" alt="Principal Signature">` : ''}
-                            <p>Principal</p>
-                        </div>
-                        <div class="contact-section">
-                            <p>Contact: ${config.schoolContact}</p>
-                        </div>
-                        <div class="signature-section">
-                            ${coordinatorSignature ? `<img src="${coordinatorSignature}" alt="Coordinator Signature">` : ''}
-                            <p>Exam Coordinator</p>
-                        </div>
-                    </div>
-                `;
-                
-                return card;
-            }
-
-            function createBackCard(config) {
-                const card = document.createElement('div');
-                card.className = 'admit-card back-page';
-                
-                let scheduleHTML = '';
-                config.examSchedule.forEach((item, index) => {
-                    const dayLabel = getDayLabel(index);
-                    const weekday = getWeekday(item.date, config.startDayIndex);
-                    const date = formatDate(item.date);
-                    scheduleHTML += `
-                        <tr>
-                            <td>${dayLabel}</td>
-                            <td>${item.subject}</td>
-                            <td>${weekday} ${date}</td>
-                        </tr>
-                    `;
-                });
-                
-                card.innerHTML = `
-                    <h2>EXAM SCHEDULE</h2>
-                    <div class="exam-schedule">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Day</th>
-                                    <th>Subject</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${scheduleHTML}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="exam-rules">
-                        <h3>EXAMINATION RULES</h3>
-                        <ol>
-                            <li>Bring this admit card for all exams</li>
-                            <li>Arrive 30 minutes before exam time</li>
-                            <li>No electronic devices allowed</li>
-                            <li>Valid ID proof must be carried</li>
-                        </ol>
-                    </div>
-                    <div class="class-teacher">
-                        <div>
-                            <h3>Class Teacher</h3>
-                            <p>Phone: ${config.teacherPhone}</p>
-                        </div>
-                        ${config.includeTeacherSig && teacherSignature ? `
-                            <div class="teacher-sig">
-                                <img src="${teacherSignature}" alt="Teacher Signature">
-                                <p>Signature</p>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                return card;
-            }
-
-            function changePage(direction) {
-                currentPage += direction;
-                generateAdmitCards();
-            }
-
-            function showPrintConfirm() {
-                if (previewArea.children.length === 0) {
-                    alert('Please generate admit cards first');
-                    return;
-                }
-                
-                const totalPages = Math.ceil(studentData.length / cardsPerPage);
-                document.getElementById('printSummary').textContent = 
-                    `Printing ${studentData.length} admit cards across ${totalPages} pages. Each page contains one front and one back card.`;
-                printConfirmModal.style.display = 'block';
-            }
-
-            function printAdmitCards() {
-                if (previewArea.children.length === 0) {
-                    alert('Please generate admit cards first');
-                    return;
-                }
-                
-                // Generate all cards for printing
-                currentPage = 0;
-                previewArea.innerHTML = '';
-                const fragment = document.createDocumentFragment();
-                const cardsContainer = document.createElement('div');
-                cardsContainer.className = 'cards-container';
-
-                for (let i = 0; i < studentData.length; i++) {
-                    const student = studentData[i];
-                    const cardPair = document.createElement('div');
-                    cardPair.className = 'card-pair';
-
-                    const frontCard = createFrontCard(student, {
-                        schoolName: document.getElementById('schoolName').value,
-                        schoolMotto: document.getElementById('schoolMotto').value,
-                        schoolAddress: document.getElementById('schoolAddress').value,
-                        schoolContact: document.getElementById('schoolContact').value,
-                        className: document.getElementById('classInput').value,
-                        examDates: `${formatDate(document.getElementById('examStartDate').value)} - ${formatDate(document.getElementById('examEndDate').value)}`,
-                        includeMotto: document.getElementById('includeMotto').checked,
-                        includePhotos: includePhotosCheck.checked,
-                        includeGuardianContact: document.getElementById('includeGuardianContact').checked
-                    });
-
-                    const backCard = createBackCard({
-                        examSchedule,
-                        teacherPhone: document.getElementById('teacherPhone').value,
-                        includeTeacherSig: document.getElementById('includeTeacherSig').checked,
-                        startDayIndex: parseInt(document.getElementById('startDay').value)
-                    });
-
-                    cardPair.appendChild(frontCard);
-                    cardPair.appendChild(backCard);
-                    cardsContainer.appendChild(cardPair);
-                }
-
-                fragment.appendChild(cardsContainer);
-                previewArea.appendChild(fragment);
-                
-                window.print();
-            }
-
-            async function generatePDF() {
-                if (previewArea.children.length === 0) {
-                    alert('Please generate admit cards first');
-                    return;
-                }
-                
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-                
-                const cards = previewArea.querySelectorAll('.admit-card');
-                for (let i = 0; i < cards.length; i++) {
-                    if (i > 0) doc.addPage();
-                    
-                    const canvas = await html2canvas(cards[i], { scale: 2, useCORS: true });
-                    const imgData = canvas.toDataURL('image/png');
-                    doc.addImage(imgData, 'PNG', 0, 0, 210, 148);
-                }
-                
-                doc.save('admit_cards.pdf');
-            }
-
-            function resetForm() {
-                if (confirm('Are you sure you want to reset all data?')) {
-                    // Reset all form fields
-                    document.querySelectorAll('input[type="text"], input[type="date"], input[type="file"], input[type="tel"], select').forEach(input => {
-                        input.value = '';
-                    });
-                    
-                    // Reset to default values
-                    document.getElementById('schoolName').value = 'BAGMATI SECONDARY SCHOOL';
-                    document.getElementById('schoolMotto').value = 'Quality education is our Motto';
-                    document.getElementById('schoolAddress').value = 'Chandrapur-1, Rautahat';
-                    document.getElementById('schoolContact').value = '9876543210';
-                    document.getElementById('classInput').value = '10';
-                    document.getElementById('teacherPhone').value = '9876543210';
-                    
-                    // Reset checkboxes
-                    includePhotosCheck.checked = false;
-                    document.getElementById('includeMotto').checked = true;
-                    document.getElementById('includeGuardianContact').checked = true;
-                    document.getElementById('includeTeacherSig').checked = false;
-                    
-                    // Hide elements
-                    photoUploadContainer.style.display = 'none';
-                    columnMappingModal.style.display = 'none';
-                    printConfirmModal.style.display = 'none';
-                    resultsButtons.style.display = 'none';
-                    
-                    // Reset results section
-                    resultsSection.classList.remove('active');
-                    resultsSection.innerHTML = `
-                        <h3>Results will appear here</h3>
-                        <p>Click "Generate Cards" to create admit cards</p>
-                    `;
-                    
-                    // Clear data
-                    scheduleInputs.innerHTML = '';
-                    previewArea.innerHTML = '';
-                    schoolLogo = null;
-                    principalSignature = null;
-                    coordinatorSignature = null;
-                    teacherSignature = null;
-                    studentData = [];
-                    studentPhotos = {};
-                    examSchedule = [];
-                    columnMap = {};
-                    currentPage = 0;
-                }
-            }
+        const select = div.querySelector('.subject-mapping-select');
+        select.addEventListener('change', () => {
+          const customInput = div.querySelector('.custom-subject-name');
+          customInput.style.display = select.value === 'custom' ? 'block' : 'none';
         });
-    </script>
+      });
+
+      confirmSubjectMappingBtn.style.display = 'block';
+      confirmSubjectMappingBtn.onclick = () => {
+        const mappings = {};
+        document.querySelectorAll('.subject-mapping').forEach(div => {
+          const header = div.querySelector('label').textContent.replace('Column: ', '').trim();
+          let subject = div.querySelector('.subject-mapping-select').value;
+          if (subject === 'custom') {
+            subject = div.querySelector('.custom-subject-name').value.trim();
+            if (subject && !creditHourMap[subject]) {
+              creditHourMap[subject] = 3;
+              addSubjectInput(subject, 3);
+            }
+          }
+          if (subject) {
+            mappings[header] = subject;
+          }
+        });
+
+        importedData = importedData.map(row => {
+          const newRow = { ...row };
+          Object.keys(mappings).forEach(header => {
+            const subject = mappings[header];
+            const isTheory = header.toLowerCase().includes('theory') || header.toLowerCase().includes('th');
+            const isPractical = header.toLowerCase().includes('practical') || header.toLowerCase().includes('pr');
+            const baseHeader = isTheory || isPractical ? `Subject_${subject.replace(/\s+/g, '_')}` : header;
+            if (isTheory) {
+              newRow[`Subject_${subject.replace(/\s+/g, '_')}_TH`] = row[header];
+            } else if (isPractical) {
+              newRow[`Subject_${subject.replace(/\s+/g, '_')}_PR`] = row[header];
+            } else {
+              newRow[`Subject_${subject.replace(/\s+/g, '_')}`] = subject;
+              newRow[`Subject_${subject.replace(/\s+/g, '_')}_TH`] = row[header];
+            }
+            if (isTheory || isPractical || !mappings[header]) {
+              delete newRow[header];
+            }
+          });
+          return newRow;
+        });
+
+        subjectMappingContainer.innerHTML = '';
+        confirmSubjectMappingBtn.style.display = 'none';
+        alert(`Successfully mapped ${Object.keys(mappings).length} columns. Click Generate Results.`);
+      };
+    }
+
+    loadSampleBtn.addEventListener('click', () => {
+      const subjects = Object.keys(creditHourMap);
+      if (subjects.length === 0) {
+        alert('Please add some subjects first');
+        return;
+      }
+      
+      importedData = [];
+      const classes = ['Grade 9', 'Grade 10', 'Grade 11'];
+      for (let i = 1; i <= 10; i++) {
+        const className = classes[i % classes.length];
+        const row = {
+          Roll: i,
+          Name: `Student ${i}`,
+          Class: className,
+          Term: termInput.value || 'First Term',
+          Year: yearInput.value || '2081',
+          IssueDate: `${issueYearInput.value}-${issueMonthInput.value}-${issueDayInput.value}`,
+          TotalDays: 220,
+          Present: 210 - i,
+          Absent: 10 + i,
+          Remarks: i % 2 ? 'Needs improvement' : 'Good'
+        };
+        
+        subjects.forEach((s, idx) => {
+          const nameVariations = [`${s} Theory`, `${s}_PR`, s];
+          const base = nameVariations[idx % nameVariations.length].replace(/\s+/g, '_');
+          row[base] = base.includes('Theory') || !base.includes('PR') ? Math.max(0, 90 - i*3 - idx) : Math.max(0, 18 - (i % 5));
+        });
+        
+        importedData.push(row);
+      }
+      
+      alert('Sample data loaded (10 students across multiple classes with varied subject names). Click Generate Results.');
+    });
+
+    function validateInputs() {
+      const errors = [];
+      if (!schoolNameInput.value.trim()) errors.push('School Name is required');
+      if (!schoolAddressInput.value.trim()) errors.push('School Address is required');
+      if (!estdInput.value.trim()) errors.push('Established Year is required');
+      if (!iemisInput.value.trim()) errors.push('IEMIS Code is required');
+      if (!termInput.value.trim()) errors.push('Term is required');
+      if (!yearInput.value.trim()) errors.push('Year is required');
+      if (!classInput.value.trim()) errors.push('Class is required');
+      if (!passTheoryInput.value || passTheoryInput.value < 0) errors.push('Pass Theory must be a positive number');
+      if (!passPracticalInput.value || passPracticalInput.value < 0) errors.push('Pass Practical must be a positive number');
+      if (!fullTheoryInput.value || fullTheoryInput.value < 0) errors.push('Full Theory must be a positive number');
+      if (!fullPracticalInput.value || fullPracticalInput.value < 0) errors.push('Full Practical must be a positive number');
+      if (!issueYearInput.value || !issueMonthInput.value || !issueDayInput.value) errors.push('Issue Date is incomplete');
+      return errors;
+    }
+
+    function processStudent(row, subjects) {
+      const name = row['Name'] || row['name'] || '';
+      const roll = row['Roll'] || row['roll'] || row['Roll No'] || row['RollNo'] || '';
+      const term = row['Term'] || termInput.value || '';
+      const year = row['Year'] || yearInput.value || '';
+      const issueDate = row['IssueDate'] || row['Issue Date'] || row['Issue'] || 
+        `${issueYearInput.value}-${issueMonthInput.value}-${issueDayInput.value}`;
+      const totalDays = row['TotalDays'] || row['Total Days'] || '';
+      const present = row['Present'] || row['PresentDays'] || row['Present Days'] || '';
+      const absent = row['Absent'] || row['AbsentDays'] || row['Absent Days'] || '';
+      const remarks = row['Remarks'] || '';
+      const className = row['Class'] || row['class'] || row['Grade'] || classInput.value || '';
+
+      const passTheory = toNum(passTheoryInput.value);
+      const passPractical = toNum(passPracticalInput.value);
+      const fullTheory = toNum(fullTheoryInput.value);
+      const fullPractical = toNum(fullPracticalInput.value);
+
+      const subjArr = subjects.map((s) => {
+        let displayName = s.base;
+        if (s.nameKey && row[s.nameKey]) displayName = row[s.nameKey];
+
+        const thRaw = s.thKey ? toNum(row[s.thKey]) : (s.nameKey ? toNum(row[s.nameKey]) : 0);
+        const prRaw = s.prKey ? toNum(row[s.prKey]) : 0;
+        
+        const thPercent = fullTheory > 0 ? (thRaw / fullTheory) * 100 : 0;
+        const prPercent = fullPractical > 0 ? (prRaw / fullPractical) * 100 : 0;
+        const totalPercent = (thPercent * (fullTheory/100)) + (prPercent * (fullPractical/100));
+
+        let thGrade = { grade: 'NG', gp: 0 };
+        let prGrade = gradeFromPercent(prPercent);
+
+        if (thRaw >= passTheory) {
+          thGrade = gradeFromPercent(thPercent);
+        }
+
+        let finalGrade;
+        if (thRaw >= passTheory && prRaw >= passPractical) {
+          finalGrade = gradeFromPercent(totalPercent);
+        } else {
+          finalGrade = { grade: 'NG', gp: 0 };
+        }
+
+        const pass = (thRaw >= passTheory) && (prRaw >= passPractical);
+        const creditHours = creditHourMap[displayName] ?? '3';
+
+        return {
+          subject: displayName,
+          creditHours,
+          thRaw, prRaw, 
+          thPercent, prPercent, totalPercent,
+          thLetter: thGrade.grade,
+          prLetter: prGrade.grade,
+          grade: finalGrade.grade,
+          gp: finalGrade.gp,
+          pass,
+          remark: remarkFromGP(finalGrade.gp)
+        };
+      });
+
+      const totalMarks = subjArr.reduce((a,b) => a + b.totalPercent, 0);
+      const numSubjects = subjArr.length;
+      const totalMax = numSubjects * 100;
+      const avgGPA = subjArr.length ? (subjArr.reduce((a,b) => a + b.gp,0) / subjArr.length) : 0;
+      const anyFail = subjArr.some(s => !s.pass);
+      const result = anyFail ? 'Fail' : 'Pass';
+
+      return {
+        name, roll, term, year, issueDate, totalDays, present, absent, remarks,
+        className,
+        subjects: subjArr,
+        totalMarks, totalMax, avgGPA, result
+      };
+    }
+
+    function generateMarksheet(student, subjects, className) {
+      const tpl = document.getElementById('marksheet-template');
+      const clone = tpl.content.cloneNode(true);
+
+      // Update school info
+      clone.querySelector('.school-name').textContent = schoolNameInput.value;
+      clone.querySelector('.motto').textContent = `"${schoolMottoInput.value}"`;
+      clone.querySelector('.address').textContent = schoolAddressInput.value;
+      clone.querySelector('.estd').textContent = estdInput.value;
+      clone.querySelector('.iemis').textContent = iemisInput.value;
+
+      // Dynamic title
+      const titleParts = [];
+      if (student.term) titleParts.push(student.term);
+      if (student.className) titleParts.push(`Grade Sheet for ${student.className}`);
+      if (student.year) titleParts.push(student.year);
+      clone.querySelector('.sheet-title').textContent = titleParts.join(' ') || 'GRADE SHEET';
+
+      // Update student info
+      clone.querySelector('.st-name').textContent = student.name;
+      clone.querySelector('.st-class').textContent = student.className;
+      clone.querySelector('.st-roll').textContent = student.roll;
+      clone.querySelector('.st-term').textContent = student.term;
+      clone.querySelector('.st-year').textContent = student.year;
+
+      const tbody = clone.querySelector('.marks-body');
+      student.subjects.forEach((sub, idx) => {
+        const tr = document.createElement('tr');
+        const showGrades = displayModeToggle.checked;
+        const thDisplay = showGrades ? sub.thLetter : sub.thRaw;
+        const prDisplay = showGrades ? sub.prLetter : sub.prRaw;
+        
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td style="text-align:left;padding-left:6px">${sub.subject}</td>
+          <td>${sub.creditHours}</td>
+          <td>${thDisplay}</td>
+          <td>${prDisplay}</td>
+          <td>${sub.grade}</td>
+          <td>${sub.gp.toFixed(2)}</td>
+          <td>${sub.remark}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Update summary row
+      const showPercentage = showPercentageToggle.checked;
+      const gpaEl = clone.querySelector('.st-gpa');
+      gpaEl.textContent = student.avgGPA.toFixed(2);
+      if (showPercentage) {
+        const percentage = (student.totalMarks / student.totalMax * 100).toFixed(2);
+        gpaEl.textContent += ` (${percentage}%)`;
+      }
+
+      clone.querySelector('.st-rank').textContent = student.rank === '-' ? '-' : `${student.rank} / ${studentsByClass[className].passed.length}`;
+
+      clone.querySelector('.st-total-marks').textContent = Math.round(student.totalMarks);
+      clone.querySelector('.st-total-max').textContent = student.totalMax;
+      clone.querySelector('.att-total').textContent = student.totalDays;
+      clone.querySelector('.att-present').textContent = student.present;
+      clone.querySelector('.att-absent').textContent = student.absent;
+      clone.querySelector('.issue-date').textContent = student.issueDate;
+
+      // Add logo if available
+      const logoImg = clone.querySelector('.logo-img');
+      const logoUrl = localStorage.getItem('schoolLogo');
+      if (logoUrl) {
+        logoImg.src = logoUrl;
+        logoImg.style.display = 'block';
+      }
+
+      // Add edit button functionality
+      const editBtn = clone.querySelector('.edit-marksheet-btn');
+      editBtn.addEventListener('click', () => showEditModal(student, subjects, className));
+
+      // Set data attributes for identification
+      clone.querySelector('.marksheet').setAttribute('data-roll', student.roll);
+      clone.querySelector('.marksheet').setAttribute('data-class', student.className);
+
+      return clone;
+    }
+
+    function showEditModal(student, subjects, className) {
+      editForm.innerHTML = `
+        <label>Name <input type="text" id="editName" value="${student.name}"></label>
+        <label>Roll <input type="text" id="editRoll" value="${student.roll}"></label>
+        <label>Class <input type="text" id="editClass" value="${student.className}"></label>
+        <label>Term <input type="text" id="editTerm" value="${student.term}"></label>
+        <label>Year <input type="text" id="editYear" value="${student.year}"></label>
+        <label>Total Days <input type="number" id="editTotalDays" value="${student.totalDays}"></label>
+        <label>Present <input type="number" id="editPresent" value="${student.present}"></label>
+        <label>Absent <input type="number" id="editAbsent" value="${student.absent}"></label>
+        <label>Remarks <input type="text" id="editRemarks" value="${student.remarks}"></label>
+        <h4>Subjects</h4>
+        ${subjects.map(s => `
+          <label>${s.base} Theory <input type="number" id="edit_${s.thKey || s.nameKey}" value="${student.subjects.find(sub => sub.subject === s.base)?.thRaw || 0}"></label>
+          ${s.prKey ? `<label>${s.base} Practical <input type="number" id="edit_${s.prKey}" value="${student.subjects.find(sub => sub.subject === s.base)?.prRaw || 0}"></label>` : ''}
+        `).join('')}
+      `;
+      editModal.style.display = 'flex';
+
+      saveEditBtn.onclick = () => {
+        const updatedRow = {
+          Name: document.getElementById('editName').value.trim(),
+          Roll: document.getElementById('editRoll').value.trim(),
+          Class: document.getElementById('editClass').value.trim(),
+          Term: document.getElementById('editTerm').value.trim(),
+          Year: document.getElementById('editYear').value.trim(),
+          TotalDays: toNum(document.getElementById('editTotalDays').value),
+          Present: toNum(document.getElementById('editPresent').value),
+          Absent: toNum(document.getElementById('editAbsent').value),
+          Remarks: document.getElementById('editRemarks').value.trim()
+        };
+
+        subjects.forEach(s => {
+          if (s.thKey || s.nameKey) {
+            updatedRow[s.thKey || s.nameKey] = toNum(document.getElementById(`edit_${s.thKey || s.nameKey}`).value);
+          }
+          if (s.prKey) {
+            updatedRow[s.prKey] = toNum(document.getElementById(`edit_${s.prKey}`).value);
+          }
+        });
+
+        // Update importedData
+        const index = importedData.findIndex(row => (row.Roll || row.roll) === student.roll && (row.Class || row.class || row.Grade || classInput.value) === student.className);
+        if (index !== -1) {
+          importedData[index] = updatedRow;
+        }
+
+        // Update studentsByClass
+        const updatedStudent = processStudent(updatedRow, subjects);
+        const classStudents = studentsByClass[className];
+        if (classStudents) {
+          classStudents.passed = classStudents.passed.filter(s => s.roll !== student.roll);
+          classStudents.failed = classStudents.failed.filter(s => s.roll !== student.roll);
+          if (updatedStudent.result === 'Pass') {
+            classStudents.passed.push(updatedStudent);
+          } else {
+            classStudents.failed.push(updatedStudent);
+          }
+          classStudents.passed.sort((a, b) => {
+            if (b.avgGPA !== a.avgGPA) return b.avgGPA - a.avgGPA;
+            return b.totalMarks - a.totalMarks;
+          });
+          classStudents.passed.forEach((s, i) => s.rank = i + 1);
+          classStudents.failed.forEach(s => s.rank = '-');
+        }
+
+        // Replace the specific marksheet
+        const marksheetDiv = printArea.querySelector(`.marksheet[data-roll="${student.roll}"][data-class="${student.className}"]`);
+        if (marksheetDiv) {
+          const newMarksheet = generateMarksheet(updatedStudent, subjects, className);
+          marksheetDiv.replaceWith(newMarksheet);
+        }
+
+        editModal.style.display = 'none';
+        alert('Marksheet updated successfully.');
+      };
+
+      cancelEditBtn.onclick = () => {
+        editModal.style.display = 'none';
+      };
+    }
+
+    generateBtn.addEventListener('click', () => {
+      const validationErrors = validateInputs();
+      if (validationErrors.length > 0) {
+        alert("Validation errors:\n" + validationErrors.join("\n"));
+        return;
+      }
+
+      if (!importedData || importedData.length === 0) {
+        alert('No data loaded. Upload Excel/CSV or click Load Sample.');
+        return;
+      }
+
+      const subjects = detectSubjectsFromHeaders(importedData[0]);
+      if (subjects.length === 0) {
+        alert('No subjects detected. Ensure columns match defined subjects or use the mapping tool.');
+        return;
+      }
+
+      const students = importedData.map(row => processStudent(row, subjects));
+
+      // Group students by class
+      studentsByClass = {};
+      students.forEach(stu => {
+        const className = stu.className || 'Unknown';
+        if (!studentsByClass[className]) {
+          studentsByClass[className] = { passed: [], failed: [] };
+        }
+        if (stu.result === 'Pass') {
+          studentsByClass[className].passed.push(stu);
+        } else {
+          studentsByClass[className].failed.push(stu);
+        }
+      });
+
+      // Sort and rank students within each class
+      Object.keys(studentsByClass).forEach(className => {
+        const classGroup = studentsByClass[className];
+        classGroup.passed.sort((a, b) => {
+          if (b.avgGPA !== a.avgGPA) return b.avgGPA - a.avgGPA;
+          return b.totalMarks - a.totalMarks;
+        });
+        classGroup.passed.forEach((s, i) => s.rank = i + 1);
+        classGroup.failed.forEach(s => s.rank = '-');
+      });
+
+      // Render marksheets
+      printArea.innerHTML = '';
+      Object.keys(studentsByClass).forEach(className => {
+        const classStudents = [...studentsByClass[className].passed, ...studentsByClass[className].failed];
+        classStudents.forEach(stu => {
+          const marksheet = generateMarksheet(stu, subjects, className);
+          printArea.appendChild(marksheet);
+        });
+      });
+
+      alert(`Generated ${students.length} marksheet(s) for ${Object.keys(studentsByClass).length} class(es).`);
+    });
+
+    // Initialize with sample subjects
+    addSubjectInput('Mathematics', 4);
+    addSubjectInput('Science', 4);
+    addSubjectInput('Physics', 3);
+  </script>
 </body>
 </html>
