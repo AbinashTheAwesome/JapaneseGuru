@@ -8,7 +8,8 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     // Valid username and password (simple hardcoded example)
     const validUsers = [
         { id: 'admin', password: 'admin123' },
-        { id: 'student', password: 'student123' }
+        { id: 'student', password: 'student123' },
+    { id: 'abinash', password: 'abinash123' }
     ];
 
     // Check if credentials match

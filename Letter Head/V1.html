@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF--8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Letterhead Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  width: 360px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.sidebar h1 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #1d4ed8;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+}
+
+.tab-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: bold;
+  color: #555;
+}
+
+.tab-buttons button.active {
+  color: #1d4ed8;
+  border-bottom: 2px solid #1d4ed8;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* New style for the contenteditable div */
+#content[contenteditable="true"] {
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+    min-height: 120px;
+    resize: vertical;
+    overflow: auto;
+    background: #fff;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#content[contenteditable="true"]:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 1px #1d4ed8;
+}
+
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.logo-preview {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.logo-preview img {
+  max-height: 100px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.actions .print { background: #16a34a; }
+.actions .save { background: #2563eb; }
+.actions .load { background: #6b7280; }
+.actions .clear { background: #dc2626; }
+
+.letter-preview {
+  flex: 1;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5mm 10mm 10mm 10mm;
+  box-sizing: border-box;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.header-text {
+  flex: 1;
+  text-align: center;
+}
+
+.header-text h1 {
+  margin: 0;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+
+.header-text p {
+  margin: 2px 0;
+}
+
+#preview-line {
+  margin: 5px 0;
+  border-top: 3px double #000;
+}
+
+.letter-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 14px;
+}
+
+.letter-meta-left p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.letter-meta-right {
+  text-align: right;
+}
+
+.signature-block {
+  margin-top: auto;
+  text-align: right;
+  padding-right: 10mm;
+}
+
+.signature-line {
+  border-top: 1px solid #000;
+  width: 60mm;
+  margin: 40px 0 6px auto;
+}
+
+.signature-text {
+  text-align: center;
+  width: 60mm;
+  margin-left: auto;
+}
+
+.signature-text p {
+  margin: 4px 0;
+}
+
+#preview-content {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Styling for formatting buttons */
+.format-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.format-buttons button {
+    padding: 8px 12px;
+    background: #e0e0e0;
+    color: #444;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.format-buttons button.active {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+/* PRINT STYLES */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    background: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .sidebar {
+    display: none !important;
+  }
+
+  .container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .letter-preview {
+    width: 210mm !important;
+    height: 297mm !important;
+    background: white !important;
+    margin: 0 auto !important;
+    padding: 5mm 10mm 20mm 20mm !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h1><i class="fas fa-file-alt"></i> Letterhead Generator</h1>
+
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="school-info">School Info</button>
+        <button class="tab-btn" data-tab="letter-details">Letter</button>
+        <button class="tab-btn" data-tab="appearance">Appearance</button>
+      </div>
+
+      <div class="tab-content active" id="school-info">
+        <div class="form-group">
+          <label>School Motto
+            <input id="school-motto" type="text" placeholder="Enter school motto">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>School Name
+            <input id="school-name" type="text" placeholder="Enter school name">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>School Address
+            <input id="school-address" type="text" placeholder="Enter school address">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>ESTD
+            <input id="estd" type="text" placeholder="Year">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>IEMIS Code
+            <input id="iemis" type="text" placeholder="Code">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>School Logo
+            <input type="file" id="logo" accept="image/*">
+          </label>
+          <div class="logo-preview">
+            <img id="preview-logo" src="" alt="School Logo" style="display: none;">
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="letter-details">
+        <div class="form-group">
+          <label>Letter No (Eng)
+            <input id="letter-no-eng" type="text">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Letter No (Nep)
+            <input id="letter-no-nep" type="text">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Ref No (Eng)
+            <input id="ref-no-eng" type="text">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Ref No (Nep)
+            <input id="ref-no-nep" type="text">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Date
+            <input id="date" type="date">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Subject
+            <input id="subject" type="text">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Salutation
+            <input id="salutation" type="text" value="Dear Sir/Madam,">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Content
+            <div class="format-buttons">
+                <button id="bold-btn" class="format-btn"><i class="fas fa-bold"></i></button>
+                <button id="italic-btn" class="format-btn"><i class="fas fa-italic"></i></button>
+                <button id="underline-btn" class="format-btn"><i class="fas fa-underline"></i></button>
+            </div>
+            <div id="content" contenteditable="true"></div>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Closing
+            <input id="closing" type="text" value="Yours faithfully,">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Principal Name
+            <input id="principal" type="text">
+          </label>
+        </div>
+      </div>
+
+      <div class="tab-content" id="appearance">
+        <div class="form-group">
+          <label>Header Text Color
+            <input id="header-color" type="color" value="#000000">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Main Text Color
+            <input id="content-color" type="color" value="#000000">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Line Color
+            <input id="line-color" type="color" value="#000000">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Line Style
+            <select id="line-style">
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="dotted">Dotted</option>
+              <option value="double" selected>Double</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Font Family
+            <select id="font-family">
+              <option value="serif">Serif</option>
+              <option value="sans-serif" selected>Sans-serif</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Arial">Arial</option>
+              <option value="Helvetica">Helvetica</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Content Font Size (px)
+            <input id="content-font-size" type="number" value="14" min="8" max="32">
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Logo Alignment
+            <select id="logo-align">
+              <option value="center" selected>Center</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="print" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+          <button class="save" onclick="saveTemplate()"><i class="fas fa-save"></i> Save</button>
+          <button class="load" onclick="loadTemplate()"><i class="fas fa-folder-open"></i> Load</button>
+          <button class="clear" onclick="clearForm()"><i class="fas fa-trash"></i> Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="letter-preview" id="letter-preview">
+      <div id="main-content">
+        <div class="header-container" id="header-container">
+          <img id="preview-logo-main" class="logo" src="" alt="School Logo" style="max-height: 100px; display: none;">
+          <div class="header-text" id="header-text">
+            <p id="preview-motto"></p>
+            <h1 id="preview-name"></h1>
+            <p id="preview-address"></p>
+            <div>
+              <p>ESTD: <span id="preview-estd"></span> || IEMIS Code: <span id="preview-iemis"></span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="letter-meta">
+          <div class="letter-meta-left">
+            <p>Letter No: <span id="preview-letter-no-eng"></span> / <span id="preview-letter-no-nep"></span></p>
+            <p>Ref No: <span id="preview-ref-no-eng"></span> / <span id="preview-ref-no-nep"></span></p>
+          </div>
+          <div class="letter-meta-right">
+            <p>Date: <span id="preview-date"></span></p>
+          </div>
+        </div>
+
+        <hr id="preview-line">
+
+        <p><strong>Subject:</strong> <span id="preview-subject"></span></p>
+
+        <p id="preview-salutation"></p>
+        <div id="preview-content"></div>
+        <p id="preview-closing"></p>
+      </div>
+
+      <div class="signature-block">
+        <div class="signature-line"></div>
+        <div class="signature-text">
+          <p id="preview-principal"></p>
+          <p>Principal</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+const tabs = document.querySelectorAll('.tab-btn');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Logo upload with localStorage support
+document.getElementById('logo').addEventListener('change', function() {
+  if (this.files && this.files[0]) {
+    // Validate file type
+    if (!this.files[0].type.match('image.*')) {
+      alert('Please select an image file (JPEG, PNG, etc.)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // Store in localStorage
+      localStorage.setItem('schoolLogo', e.target.result);
+
+      // Update both logo previews
+      document.getElementById('preview-logo').src = e.target.result;
+      document.getElementById('preview-logo').style.display = 'block';
+      document.getElementById('preview-logo-main').src = e.target.result;
+      document.getElementById('preview-logo-main').style.display = 'block';
+      updatePreview(); // Re-run preview update to apply alignment
+    };
+    reader.onerror = function() {
+      alert('Error loading image file');
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+// --- NEW TEXT FORMATTING LOGIC ---
+const contentEditable = document.getElementById('content');
+const boldBtn = document.getElementById('bold-btn');
+const italicBtn = document.getElementById('italic-btn');
+const underlineBtn = document.getElementById('underline-btn');
+
+function formatDoc(command) {
+    document.execCommand(command, false, null);
+    contentEditable.focus();
+    updateButtonStates();
+}
+
+boldBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent button from taking focus
+    formatDoc('bold');
+});
+
+italicBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    formatDoc('italic');
+});
+
+underlineBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    formatDoc('underline');
+});
+
+function updateButtonStates() {
+    boldBtn.classList.toggle('active', document.queryCommandState('bold'));
+    italicBtn.classList.toggle('active', document.queryCommandState('italic'));
+    underlineBtn.classList.toggle('active', document.queryCommandState('underline'));
+}
+
+// Update button states whenever selection changes or key is pressed in the editor
+contentEditable.addEventListener('keyup', updateButtonStates);
+document.addEventListener('selectionchange', () => {
+    if (document.activeElement === contentEditable) {
+        updateButtonStates();
+    }
+});
+
+
+// Update preview
+function updatePreview() {
+  document.getElementById('preview-motto').textContent = '"' + (document.getElementById('school-motto').value || 'Quality education is our Motto') + '"';
+  document.getElementById('preview-name').textContent = (document.getElementById('school-name').value || 'BAGMATI SECONDARY SCHOOL').toUpperCase();
+  document.getElementById('preview-address').textContent = document.getElementById('school-address').value || 'Chandrapur-1, Rautahat';
+  document.getElementById('preview-estd').textContent = document.getElementById('estd').value || '2020';
+  document.getElementById('preview-iemis').textContent = document.getElementById('iemis').value || '9846554489451';
+  document.getElementById('preview-letter-no-eng').textContent = document.getElementById('letter-no-eng').value;
+  document.getElementById('preview-letter-no-nep').textContent = document.getElementById('letter-no-nep').value;
+  document.getElementById('preview-ref-no-eng').textContent = document.getElementById('ref-no-eng').value;
+  document.getElementById('preview-ref-no-nep').textContent = document.getElementById('ref-no-nep').value;
+  document.getElementById('preview-date').textContent = document.getElementById('date').value || new Date().toLocaleDateString();
+  document.getElementById('preview-subject').textContent = document.getElementById('subject').value;
+  document.getElementById('preview-salutation').textContent = document.getElementById('salutation').value;
+  
+  // UPDATED: Use innerHTML to preserve formatting
+  document.getElementById('preview-content').innerHTML = document.getElementById('content').innerHTML;
+
+  document.getElementById('preview-closing').textContent = document.getElementById('closing').value;
+  document.getElementById('preview-principal').textContent = document.getElementById('principal').value;
+
+  // Apply appearance
+  const headerColor = document.getElementById('header-color').value;
+  document.getElementById('main-content').style.color = document.getElementById('content-color').value;
+  document.getElementById('header-text').style.color = headerColor;
+
+  const line = document.getElementById('preview-line');
+  line.style.borderTopColor = document.getElementById('line-color').value;
+  line.style.borderTopStyle = document.getElementById('line-style').value;
+  document.getElementById('letter-preview').style.fontFamily = document.getElementById('font-family').value;
+
+  // Apply content font size
+  document.getElementById('preview-content').style.fontSize = document.getElementById('content-font-size').value + 'px';
+
+  // Apply logo alignment
+  const logoAlign = document.getElementById('logo-align').value;
+  const headerContainer = document.getElementById('header-container');
+  if (logoAlign === 'left') {
+      headerContainer.style.justifyContent = 'flex-start';
+  } else if (logoAlign === 'right') {
+      headerContainer.style.justifyContent = 'flex-end';
+  } else {
+      headerContainer.style.justifyContent = 'center';
+  }
+}
+
+// Save / Load / Clear
+function saveTemplate() {
+  const formData = {};
+  document.querySelectorAll('input, select').forEach(el => {
+    if (el.type !== 'file') formData[el.id] = el.value;
+  });
+
+  // UPDATED: Save content as HTML
+  formData['content'] = document.getElementById('content').innerHTML;
+
+  // Also include the logo URL if available
+  const logoUrl = localStorage.getItem('schoolLogo');
+  if (logoUrl) {
+    formData.logoUrl = logoUrl;
+  }
+
+  const blob = new Blob([JSON.stringify(formData)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'letterhead-template.json';
+  a.click();
+}
+
+function loadTemplate() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const data = JSON.parse(ev.target.result);
+      for (let id in data) {
+        if (id === 'logoUrl') {
+          // Handle logo URL
+          localStorage.setItem('schoolLogo', data[id]);
+          document.getElementById('preview-logo').src = data[id];
+          document.getElementById('preview-logo').style.display = 'block';
+          document.getElementById('preview-logo-main').src = data[id];
+          document.getElementById('preview-logo-main').style.display = 'block';
+        } else if (id === 'content') {
+            // UPDATED: Load content as HTML
+            document.getElementById('content').innerHTML = data[id];
+        }
+        else if (document.getElementById(id)) {
+          document.getElementById(id).value = data[id];
+        }
+      }
+      updatePreview();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function clearForm() {
+  document.querySelectorAll('input, select').forEach(el => {
+    if (el.type !== 'color' && el.type !== 'date' && el.type !== 'number' && !el.multiple) el.value = '';
+  });
+
+  // UPDATED: Clear the content div
+  document.getElementById('content').innerHTML = '';
+
+  // Also clear the stored logo
+  localStorage.removeItem('schoolLogo');
+  document.getElementById('preview-logo').src = '';
+  document.getElementById('preview-logo').style.display = 'none';
+  document.getElementById('preview-logo-main').src = '';
+  document.getElementById('preview-logo-main').style.display = 'none';
+
+  // Reset formatting buttons
+  document.querySelectorAll('.format-btn').forEach(btn => btn.classList.remove('active'));
+
+  updatePreview();
+}
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Load logo from localStorage if available
+  const logoUrl = localStorage.getItem('schoolLogo');
+  if (logoUrl) {
+    document.getElementById('preview-logo').src = logoUrl;
+    document.getElementById('preview-logo').style.display = 'block';
+    document.getElementById('preview-logo-main').src = logoUrl;
+    document.getElementById('preview-logo-main').style.display = 'block';
+  }
+
+  // Add event listeners to all inputs
+  document.querySelectorAll('input, select, [contenteditable]').forEach(el => {
+    el.addEventListener('input', updatePreview);
+  });
+
+  updatePreview(); // Initial preview
+});
+  </script>
+</body>
+</html>
