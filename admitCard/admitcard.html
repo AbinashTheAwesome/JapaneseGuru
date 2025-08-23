@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admit Card Generator</title>
+    <style>
+        /* Basic UI Styles */
+        body {
+            font-family: "Times New Roman", serif;
+            background: #f8fafc;
+            margin: 0;
+            color: #1a1a1a;
+            line-height: 1.4;
+        }
+
+        .ui {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .ui-left {
+            width: 380px;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            height: fit-content;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .ui-right {
+            flex: 1;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            color: #2d3748;
+            margin: 20px 0 12px 0;
+            font-size: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        input[type="date"],
+        input[type="tel"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .date-inputs input {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .date-inputs span {
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .schedule-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .schedule-input-row input[type="text"] {
+            flex: 2;
+            margin-top: 0;
+        }
+
+        .schedule-input-row input[type="date"] {
+            flex: 1.5;
+            margin-top: 0;
+        }
+        
+        .schedule-input-row input[type="time"] {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .schedule-input-row button {
+            flex: 0 0 auto;
+            background: #e53e3e;
+            color: #fff;
+            padding: 8px 12px;
+            margin-top: 0;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 140px;
+            height: 36px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-label {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e0;
+            transition: .3s;
+            border-radius: 36px;
+        }
+
+        .toggle-label:before {
+            position: absolute;
+            content: "";
+            height: 28px;
+            width: 68px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 36px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .toggle-label {
+            background-color: #4299e1;
+        }
+
+        input:checked + .toggle-label:before {
+            transform: translateX(64px);
+        }
+
+        .toggle-text {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+            width: 60px;
+            text-align: center;
+        }
+
+        .toggle-text:first-child {
+            left: 12px;
+        }
+
+        .toggle-text:last-child {
+            right: 12px;
+        }
+
+        /* Buttons */
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        button {
+            padding: 10px 16px;
+            background: #4299e1;
+            color: #ffffff;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            flex: 1;
+        }
+
+        button:hover {
+            background: #3182ce;
+        }
+
+        button.secondary {
+            background: #2ecc71;
+        }
+
+        button.secondary:hover {
+            background: #27ae60;
+        }
+
+        button.danger {
+            background: #e53e3e;
+        }
+
+        button.danger:hover {
+            background: #c53030;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: #e2e8f0;
+            margin: 24px 0;
+        }
+
+        .help {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #718096;
+            background: #f0f8ff;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+
+        /* Admit Card Styles */
+        .print-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        /* A4 Landscape container for 4 cards */
+        .card-page {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 5mm;
+            width: 297mm; /* A4 landscape width */
+            height: 210mm; /* A4 landscape height */
+            box-sizing: border-box;
+            padding: 10mm;
+            page-break-after: always;
+        }
+
+        .admit-card {
+            width: 135mm; /* Roughly half of A4 landscape width, with padding */
+            height: 90mm; /* Roughly half of A4 landscape height, with padding */
+            background: #ffffff;
+            padding: 8mm;
+            box-sizing: border-box;
+            border: 2px solid #000;
+            position: relative;
+            font-family: "Times New Roman", serif;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin: 2mm; /* Small margin between cards */
+        }
+
+        .school-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+        }
+
+        .school-logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border: 1px solid #000;
+            padding: 2px;
+            display: none;
+        }
+
+        .header-text {
+            flex: 1;
+        }
+
+        .school-name {
+            font-size: 18px;
+            margin: 0;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .motto {
+            font-style: italic;
+            color: #333;
+            margin: 2px 0;
+            font-size: 12px;
+        }
+
+        .address {
+            margin: 0;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .admit-card h2 {
+            text-align: center;
+            margin: 10px 0;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: none;
+            padding: 0;
+        }
+
+        .student-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .info-col {
+            display: flex;
+            flex-direction: column;
+            width: 48%;
+        }
+
+        .student-info p {
+            margin: 6px 0;
+            display: flex;
+        }
+
+        .student-info .label {
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .student-photo {
+            position: absolute;
+            right: 8mm;
+            top: 25mm;
+            width: 50px;
+            height: 60px;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .student-photo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .signatures {
+            position: absolute;
+            bottom: 10mm;
+            left: 10mm;
+            width: calc(100% - 20mm);
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .signatures div {
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .signatures img {
+            height: 40px;
+            margin-bottom: 3px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .signature-line {
+            display: block;
+            margin-bottom: 5px;
+            border-top: 1px solid #000;
+            width: 70px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 0px;
+        }
+
+        .exam-contact-info {
+            flex: 1;
+            text-align: center;
+            align-self: center;
+        }
+
+        /* Back Card Styles */
+        .back-card {
+            background: linear-gradient(to bottom, #f9f9f9, #ffffff);
+        }
+
+        .back-card h2 {
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .exam-schedule {
+            margin: 10px 0;
+        }
+
+        .exam-schedule table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #000;
+        }
+
+        .exam-schedule th,
+        .exam-schedule td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .exam-schedule th {
+            background: #f8fafc;
+            font-weight: bold;
+        }
+
+        .exam-rules {
+            margin: 10px 0;
+        }
+
+        .exam-rules h3 {
+            margin-bottom: 5px;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+
+        .exam-rules ol {
+            margin: 0;
+            padding-left: 15px;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .exam-rules li {
+            margin-bottom: 3px;
+        }
+
+        .class-teacher {
+            position: absolute;
+            bottom: 40mm;
+            right: 10mm;
+            text-align: center;
+        }
+
+        .class-teacher h3 {
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+
+        .class-teacher p {
+            margin: 3px 0;
+            font-size: 12px;
+        }
+
+        .teacher-sig img {
+            height: 40px;
+            margin-bottom: 3px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .modal-content button {
+            margin: 10px 5px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .ui-left {
+                display: none !important;
+            }
+
+            .ui {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .ui-right {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: none !important;
+            }
+
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+
+            .card-page {
+                display: flex !important;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 5mm !important;
+                width: 297mm !important;
+                height: 210mm !important;
+                padding: 10mm !important;
+                page-break-after: always !important;
+            }
+
+            .admit-card {
+                box-shadow: none !important;
+                border: 1px solid #000 !important;
+                margin: 0 !important;
+                width: 135mm !important;
+                height: 90mm !important;
+                padding: 8mm !important;
+                background: white !important;
+            }
+
+            .print-area {
+                gap: 0 !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .ui {
+                flex-direction: column;
+            }
+
+            .ui-left {
+                width: auto;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div class="ui">
+        <div class="ui-left">
+            <h1>🎓 Admit Card Generator</h1>
+            
+            <h2>🏫 School Information</h2>
+            <label>School Name
+                <input type="text" id="schoolName" value="BAGMATI SECONDARY SCHOOL" required>
+            </label>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeMotto" checked>
+                <label for="includeMotto">Include Motto</label>
+            </div>
+            
+            <label>Motto
+                <input type="text" id="schoolMotto" value="Quality education is our Motto">
+            </label>
+            
+            <label>Address
+                <input type="text" id="schoolAddress" value="Chandrapur-1, Rautahat" required>
+            </label>
+            
+            <label>Contact Number
+                <input type="tel" id="schoolContact" value="9876543210" required>
+            </label>
+            
+            <label>Logo (Optional)
+                <input type="file" id="schoolLogo" accept="image/*">
+            </label>
+
+            <hr>
+
+            <h2>📚 Student Data</h2>
+            <label>Upload Excel File (.xlsx)
+                <input type="file" id="studentData" accept=".xlsx,.xls">
+            </label>
+            
+            <div id="columnMappingModal" class="modal">
+                <div class="modal-content">
+                    <h3>Map Excel Columns</h3>
+                    <label>Roll Number
+                        <select id="mapRoll"></select>
+                    </label>
+                    
+                    <label>Student Name
+                        <select id="mapName"></select>
+                    </label>
+                    
+                    <label>Class
+                        <select id="mapClass"></select>
+                    </label>
+                    
+                    <label>Section
+                        <select id="mapSection"></select>
+                    </label>
+                    
+                    <label>Guardian Name
+                        <select id="mapGuardian"></select>
+                    </label>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="includeGuardianContact" checked>
+                        <label for="includeGuardianContact">Include Guardian Contact</label>
+                    </div>
+                    
+                    <label>Guardian Contact
+                        <select id="mapGuardianContact"></select>
+                    </label>
+                    
+                    <div class="buttons">
+                        <button id="confirmMapping">Confirm Mapping</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="includePhotos">
+                <label for="includePhotos">Include student photos</label>
+            </div>
+            
+            <div id="photoUploadContainer" style="display: none;">
+                <label>Upload Photos (ZIP)
+                    <input type="file" id="studentPhotos" accept=".zip">
+                </label>
+            </div>
+
+            <hr>
+
+            <h2>📝 Exam Information</h2>
+            <label>Class
+                <input type="text" id="classInput" value="10" required>
+            </label>
+            
+            <label>Exam Period
+                <div class="date-inputs">
+                    <input type="date" id="examStartDate" required>
+                    <span>to</span>
+                    <input type="date" id="examEndDate" required>
+                </div>
+            </label>
+
+            <label>Start Day of Week
+                <select id="startDay">
+                    <option value="0">Sunday</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                </select>
+            </label>
+
+            <label>Class Teacher Phone
+                <input type="tel" id="teacherPhone" value="9876543210" required>
+            </label>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeTeacherSig">
+                <label for="includeTeacherSig">Include class teacher signature</label>
+            </div>
+            
+            <label>Class Teacher Signature
+                <input type="file" id="teacherSig" accept="image/*">
+            </label>
+            
+            <label>Exam Schedule</label>
+            <div id="scheduleInputs"></div>
+            <button type="button" id="addSubjectBtn">➕ Add Subject</button>
+
+            <hr>
+
+            <h2>✍️ Signatures</h2>
+            <label>Principal's Signature
+                <input type="file" id="principalSig" accept="image/*">
+            </label>
+            
+            <label>Exam Coordinator Signature
+                <input type="file" id="coordinatorSig" accept="image/*">
+            </label>
+
+            <hr>
+
+            <label class="toggle-container">
+                <span>Card Type:</span>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="cardTypeToggle">
+                    <label for="cardTypeToggle" class="toggle-label">
+                        <span class="toggle-text">Front</span>
+                        <span class="toggle-text">Back</span>
+                    </label>
+                </div>
+            </label>
+
+            <div class="buttons">
+                <button id="loadSampleBtn">📝 Load Sample</button>
+                <button id="generateBtn">🎯 Generate Cards</button>
+                <button id="printBtn" class="secondary">🖨️ Print</button>
+                <button id="resetBtn" class="danger">🗑️ Reset</button>
+            </div>
+
+            <div class="help">
+                <strong>📋 File format notes</strong>
+                <ul>
+                    <li>Excel file must include Roll, Name, Class, Section, Guardian columns</li>
+                    <li>Photo ZIP should contain images named as roll numbers (e.g., 1.jpg, 2.png)</li>
+                    <li>Use the toggle to switch between front and back card preview</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="ui-right">
+            <div id="printArea" class="print-area"></div>
+        </div>
+    </div>
+
+    <template id="frontTemplate">
+        <div class="admit-card front-card">
+            <div class="school-header">
+                <img class="school-logo" src="" alt="School Logo">
+                <div class="header-text">
+                    <h1 class="school-name"></h1>
+                    <p class="motto"></p>
+                    <p class="address"></p>
+                </div>
+            </div>
+            <h2>ADMIT CARD</h2>
+            <div class="student-info">
+                <div class="info-col">
+                    <p><span class="label">Name:</span><span class="student-name"></span></p>
+                    <p><span class="label">Roll No:</span><span class="student-roll"></span></p>
+                    <p><span class="label">Class:</span><span class="student-class"></span></p>
+                </div>
+                <div class="info-col">
+                    <p class="guardian-field"><span class="label">Guardian:</span><span class="student-guardian"></span></p>
+                    <p class="guardian-contact-field"><span class="label">Contact:</span><span class="student-contact"></span></p>
+                    <p><span class="label">Valid:</span><span class="exam-dates"></span></p>
+                </div>
+            </div>
+            <div class="signatures">
+                <div class="principal-sig">
+                    <span class="signature-line"></span>
+                    Principal
+                </div>
+                <div class="exam-contact-info">
+                    <p><span class="label">Contact:</span><span class="exam-contact"></span></p>
+                </div>
+                <div class="coordinator-sig">
+                    <span class="signature-line"></span>
+                    Exam Coordinator
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="backTemplate">
+        <div class="admit-card back-card">
+            <h2>EXAM SCHEDULE</h2>
+            <div class="exam-schedule">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="schedule-body"></tbody>
+                </table>
+            </div>
+            <div class="exam-rules">
+                <h3>EXAMINATION RULES</h3>
+                <ol>
+                    <li>Bring this admit card for all exams</li>
+                    <li>Arrive 30 minutes before exam time</li>
+                    <li>No electronic devices allowed</li>
+                    <li>Valid ID proof must be carried</li>
+                    <li>Follow all examination instructions</li>
+                </ol>
+            </div>
+            <div class="class-teacher">
+                <h3>Class Teacher</h3>
+                <p class="teacher-phone"></p>
+                <div class="teacher-sig">
+                    <img src="" alt="Class Teacher Signature" style="display: none;">
+                    <span class="signature-line"></span>
+                    <p>Signature</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // DOM Elements
+        const schoolNameInput = document.getElementById('schoolName');
+        const includeMottoCheck = document.getElementById('includeMotto');
+        const schoolMottoInput = document.getElementById('schoolMotto');
+        const schoolAddressInput = document.getElementById('schoolAddress');
+        const schoolContactInput = document.getElementById('schoolContact');
+        const schoolLogoInput = document.getElementById('schoolLogo');
+        const studentDataInput = document.getElementById('studentData');
+        const includePhotosCheck = document.getElementById('includePhotos');
+        const photoUploadContainer = document.getElementById('photoUploadContainer');
+        const studentPhotosInput = document.getElementById('studentPhotos');
+        const classInput = document.getElementById('classInput');
+        const examStartDateInput = document.getElementById('examStartDate');
+        const examEndDateInput = document.getElementById('examEndDate');
+        const startDaySelect = document.getElementById('startDay');
+        const teacherPhoneInput = document.getElementById('teacherPhone');
+        const includeTeacherSigCheck = document.getElementById('includeTeacherSig');
+        const teacherSigInput = document.getElementById('teacherSig');
+        const scheduleInputs = document.getElementById('scheduleInputs');
+        const addSubjectBtn = document.getElementById('addSubjectBtn');
+        const principalSigInput = document.getElementById('principalSig');
+        const coordinatorSigInput = document.getElementById('coordinatorSig');
+        const cardTypeToggle = document.getElementById('cardTypeToggle');
+        const loadSampleBtn = document.getElementById('loadSampleBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const printBtn = document.getElementById('printBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const printArea = document.getElementById('printArea');
+        const columnMappingModal = document.getElementById('columnMappingModal');
+        const confirmMappingBtn = document.getElementById('confirmMapping');
+        const includeGuardianContactCheck = document.getElementById('includeGuardianContact');
+
+        // Data storage
+        let schoolLogo = null;
+        let principalSignature = null;
+        let coordinatorSignature = null;
+        let teacherSignature = null;
+        let studentData = [];
+        let studentPhotos = {};
+        let examSchedule = [];
+        let columnMap = {};
+
+        // Initialize
+        function init() {
+            renderBlankPreview();
+            
+            // Event listeners
+            includePhotosCheck.addEventListener('change', function() {
+                photoUploadContainer.style.display = this.checked ? 'block' : 'none';
+            });
+
+            schoolLogoInput.addEventListener('change', handleLogoUpload);
+            studentDataInput.addEventListener('change', handleStudentDataUpload);
+            studentPhotosInput.addEventListener('change', handlePhotoUpload);
+            principalSigInput.addEventListener('change', (e) => handleSignatureUpload(e, 'principal'));
+            coordinatorSigInput.addEventListener('change', (e) => handleSignatureUpload(e, 'coordinator'));
+            teacherSigInput.addEventListener('change', (e) => handleSignatureUpload(e, 'teacher'));
+            
+            addSubjectBtn.addEventListener('click', addSubjectInput);
+            loadSampleBtn.addEventListener('click', loadSampleData);
+            generateBtn.addEventListener('click', generateAdmitCards);
+            printBtn.addEventListener('click', () => window.print());
+            resetBtn.addEventListener('click', resetForm);
+            confirmMappingBtn.addEventListener('click', confirmColumnMapping);
+            cardTypeToggle.addEventListener('change', generateAdmitCards);
+
+            // Live preview updates
+            [schoolNameInput, schoolMottoInput, schoolAddressInput, classInput, schoolContactInput].forEach(input => {
+                input.addEventListener('input', updateBlankPreview);
+            });
+            includeMottoCheck.addEventListener('change', updateBlankPreview);
+        }
+
+        // Utility functions
+        function isImage(file) {
+            return /\.(jpg|jpeg|png|gif)$/i.test(file.name);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${day}-${month}`;
+        }
+
+        function getDayName(dateStr, startDayIndex) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const date = new Date(dateStr);
+            const startDate = new Date(examStartDateInput.value);
+            const dayDiff = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
+            const weekdayIndex = (startDayIndex + dayDiff) % 7;
+            return days[weekdayIndex];
+        }
+
+        // File handlers
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file || !isImage(file)) {
+                alert('Please upload a valid image file');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                schoolLogo = event.target.result;
+                updateBlankPreview();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleSignatureUpload(e, type) {
+            const file = e.target.files[0];
+            if (!file || !isImage(file)) {
+                alert('Please upload a valid image file');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (type === 'principal') {
+                    principalSignature = event.target.result;
+                } else if (type === 'coordinator') {
+                    coordinatorSignature = event.target.result;
+                } else if (type === 'teacher') {
+                    teacherSignature = event.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleStudentDataUpload(e) {
+            const file = e.target.files[0];
+            if (!file || (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls'))) {
+                alert('Please upload an Excel file (.xlsx or .xls)');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const data = new Uint8Array(event.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rawData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                if (rawData.length < 2) {
+                    alert('Excel file must contain headers and at least one row of data');
+                    return;
+                }
+                
+                const headers = rawData[0];
+                studentData = rawData.slice(1).map(row => {
+                    const normalizedRow = {};
+                    headers.forEach((header, i) => {
+                        normalizedRow[header] = row[i];
+                    });
+                    return normalizedRow;
+                });
+                
+                populateColumnMapping(headers);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file || !file.name.endsWith('.zip')) {
+                alert('Please upload a ZIP file');
+                return;
+            }
+            
+            JSZip.loadAsync(file).then(zip => {
+                const promises = [];
+                zip.forEach((relPath, zipEntry) => {
+                    if (!zipEntry.dir && isImage({name: relPath})) {
+                        const promise = zipEntry.async('base64').then(content => {
+                            const ext = relPath.split('.').pop().toLowerCase();
+                            const roll = relPath.split('.')[0];
+                            studentPhotos[roll] = `data:image/${ext};base64,${content}`;
+                        });
+                        promises.push(promise);
+                    }
+                });
+                return Promise.all(promises);
+            }).then(() => {
+                alert('Photos processed successfully');
+            }).catch(err => {
+                alert('Error processing ZIP file: ' + err.message);
+            });
+        }
+
+        // Column mapping
+        function populateColumnMapping(headers) {
+            const selects = ['mapRoll', 'mapName', 'mapClass', 'mapSection', 'mapGuardian', 'mapGuardianContact'];
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                select.innerHTML = '<option value="">Select Column</option>';
+                headers.forEach(header => {
+                    const option = document.createElement('option');
+                    option.value = header;
+                    option.textContent = header;
+                    select.appendChild(option);
+                });
+            });
+            columnMappingModal.style.display = 'flex';
+        }
+
+        function confirmColumnMapping() {
+            columnMap = {
+                roll: document.getElementById('mapRoll').value,
+                name: document.getElementById('mapName').value,
+                class: document.getElementById('mapClass').value,
+                section: document.getElementById('mapSection').value,
+                guardian: document.getElementById('mapGuardian').value,
+                guardianContact: includeGuardianContactCheck.checked ? document.getElementById('mapGuardianContact').value : null
+            };
+            
+            if (!columnMap.roll || !columnMap.name) {
+                alert('Please map Roll Number and Student Name');
+                return;
+            }
+            
+            columnMappingModal.style.display = 'none';
+            alert('Column mapping confirmed. You can now generate admit cards.');
+        }
+
+        // Schedule management
+        function addSubjectInput() {
+            const row = document.createElement('div');
+            row.className = 'schedule-input-row';
+            row.innerHTML = `
+                <input type="text" class="subject-input" placeholder="Subject" required>
+                <input type="date" class="subject-date" required>
+                <input type="time" class="subject-time" required>
+                <button type="button" class="remove-subject">Remove</button>
+            `;
+            scheduleInputs.appendChild(row);
+            
+            row.querySelector('.remove-subject').addEventListener('click', () => {
+                row.remove();
+            });
+        }
+
+        // Sample data
+        function loadSampleData() {
+            studentData = [];
+            for (let i = 1; i <= 5; i++) {
+                studentData.push({
+                    'Roll': i,
+                    'Name': `Student ${i}`,
+                    'Class': '10',
+                    'Section': 'A',
+                    'Guardian': `Guardian ${i}`,
+                    'Guardian Contact': `987654321${i}`
+                });
+            }
+            
+            // Auto-map columns
+            columnMap = {
+                roll: 'Roll',
+                name: 'Name',
+                class: 'Class',
+                section: 'Section',
+                guardian: 'Guardian',
+                guardianContact: 'Guardian Contact'
+            };
+            
+            alert('Sample data loaded (5 students). You can now generate admit cards.');
+        }
+
+        // Preview functions
+        function renderBlankPreview() {
+            printArea.innerHTML = '';
+            
+            const pageContainer = document.createElement('div');
+            pageContainer.className = 'card-page';
+
+            const templateFront = document.getElementById('frontTemplate');
+            const cloneFront = templateFront.content.cloneNode(true);
+            const templateBack = document.getElementById('backTemplate');
+            const cloneBack = templateBack.content.cloneNode(true);
+
+            if (!cardTypeToggle.checked) {
+                // Front card
+                if (schoolLogo) {
+                    const logoImg = cloneFront.querySelector('.school-logo');
+                    logoImg.src = schoolLogo;
+                    logoImg.style.display = 'block';
+                }
+                
+                cloneFront.querySelector('.school-name').textContent = schoolNameInput.value;
+                if (includeMottoCheck.checked) {
+                    cloneFront.querySelector('.motto').textContent = `"${schoolMottoInput.value}"`;
+                } else {
+                    cloneFront.querySelector('.motto').style.display = 'none';
+                }
+                cloneFront.querySelector('.address').textContent = schoolAddressInput.value;
+                cloneFront.querySelector('.student-name').textContent = 'Student Name';
+                cloneFront.querySelector('.student-roll').textContent = 'Roll No';
+                cloneFront.querySelector('.student-class').textContent = classInput.value + '-Section';
+                cloneFront.querySelector('.student-guardian').textContent = 'Guardian Name';
+                cloneFront.querySelector('.student-contact').textContent = 'Contact Number';
+                cloneFront.querySelector('.exam-dates').textContent = 'Exam Period';
+                cloneFront.querySelector('.exam-contact').textContent = schoolContactInput.value;
+                
+                if (!includeGuardianContactCheck.checked) {
+                    cloneFront.querySelector('.guardian-contact-field').style.display = 'none';
+                }
+                
+                pageContainer.appendChild(cloneFront);
+                pageContainer.appendChild(cloneFront.cloneNode(true));
+                pageContainer.appendChild(cloneFront.cloneNode(true));
+                pageContainer.appendChild(cloneFront.cloneNode(true));
+            } else {
+                // Back card
+                cloneBack.querySelector('.schedule-body').innerHTML = '<tr><td colspan="4">No schedule added yet</td></tr>';
+                cloneBack.querySelector('.teacher-phone').textContent = `Phone: ${teacherPhoneInput.value}`;
+
+                pageContainer.appendChild(cloneBack);
+                pageContainer.appendChild(cloneBack.cloneNode(true));
+                pageContainer.appendChild(cloneBack.cloneNode(true));
+                pageContainer.appendChild(cloneBack.cloneNode(true));
+            }
+            
+            printArea.appendChild(pageContainer);
+        }
+
+        function updateBlankPreview() {
+            if (studentData.length === 0) {
+                renderBlankPreview();
+            }
+        }
+
+        // Generate admit cards
+        function generateAdmitCards() {
+            if (studentData.length === 0 || Object.keys(columnMap).length === 0) {
+                alert('Please upload and map student data first');
+                return;
+            }
+
+            // Validate inputs
+            if (!schoolNameInput.value.trim()) {
+                alert('Please enter school name');
+                return;
+            }
+
+            // Collect exam schedule
+            examSchedule = [];
+            const subjectRows = scheduleInputs.querySelectorAll('.schedule-input-row');
+            subjectRows.forEach(row => {
+                const subject = row.querySelector('.subject-input').value.trim();
+                const date = row.querySelector('.subject-date').value;
+                const time = row.querySelector('.subject-time').value;
+                if (subject && date) {
+                    examSchedule.push({ subject, date, time });
+                }
+            });
+
+            const startDate = examStartDateInput.value;
+            const endDate = examEndDateInput.value;
+            const startDayIndex = parseInt(startDaySelect.value);
+
+            printArea.innerHTML = '';
+            
+            if (cardTypeToggle.checked) {
+                // Generate back cards
+                generateBackCards(startDate, endDate, startDayIndex);
+            } else {
+                // Generate front cards
+                generateFrontCards(startDate, endDate);
+            }
+        }
+
+        function generateFrontCards(startDate, endDate) {
+            const examDates = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+            printArea.innerHTML = '';
+            
+            for (let i = 0; i < studentData.length; i += 4) {
+                const pageContainer = document.createElement('div');
+                pageContainer.className = 'card-page';
+
+                const studentsOnPage = [
+                    studentData[i],
+                    studentData[i + 1],
+                    studentData[i + 2],
+                    studentData[i + 3]
+                ];
+
+                studentsOnPage.forEach(student => {
+                    if (student) {
+                        const card = generateSingleFrontCard(student, examDates);
+                        pageContainer.appendChild(card);
+                    }
+                });
+
+                printArea.appendChild(pageContainer);
+            }
+        }
+
+        function generateSingleFrontCard(student, examDates) {
+            const template = document.getElementById('frontTemplate');
+            const clone = template.content.cloneNode(true);
+            const card = clone.querySelector('.admit-card');
+            
+            if (schoolLogo) {
+                const logoImg = card.querySelector('.school-logo');
+                logoImg.src = schoolLogo;
+                logoImg.style.display = 'block';
+            }
+            
+            card.querySelector('.school-name').textContent = schoolNameInput.value;
+            if (includeMottoCheck.checked) {
+                card.querySelector('.motto').textContent = `"${schoolMottoInput.value}"`;
+            } else {
+                card.querySelector('.motto').style.display = 'none';
+            }
+            card.querySelector('.address').textContent = schoolAddressInput.value;
+            card.querySelector('.exam-contact').textContent = schoolContactInput.value;
+            
+            card.querySelector('.student-name').textContent = student[columnMap.name] || '';
+            card.querySelector('.student-roll').textContent = student[columnMap.roll] || '';
+            card.querySelector('.student-class').textContent = 
+                `${student[columnMap.class] || classInput.value}-${student[columnMap.section] || ''}`;
+            card.querySelector('.student-guardian').textContent = student[columnMap.guardian] || '';
+            
+            if (includeGuardianContactCheck.checked && columnMap.guardianContact) {
+                card.querySelector('.student-contact').textContent = student[columnMap.guardianContact] || '';
+            } else {
+                card.querySelector('.guardian-contact-field').style.display = 'none';
+            }
+            
+            card.querySelector('.exam-dates').textContent = examDates;
+            
+            if (includePhotosCheck.checked && studentPhotos[student[columnMap.roll]]) {
+                const photoContainer = document.createElement('div');
+                photoContainer.className = 'student-photo';
+                photoContainer.innerHTML = `<img src="${studentPhotos[student[columnMap.roll]]}" alt="Student Photo">`;
+                card.appendChild(photoContainer);
+            }
+            
+            if (principalSignature) {
+                const principalDiv = card.querySelector('.principal-sig');
+                principalDiv.innerHTML = `<img src="${principalSignature}" alt="Principal Signature"><p>Principal</p>`;
+            }
+            
+            if (coordinatorSignature) {
+                const coordinatorDiv = card.querySelector('.coordinator-sig');
+                coordinatorDiv.innerHTML = `<img src="${coordinatorSignature}" alt="Coordinator Signature"><p>Exam Coordinator</p>`;
+            }
+            
+            return card;
+        }
+
+
+        function generateBackCards(startDate, endDate, startDayIndex) {
+            printArea.innerHTML = '';
+            
+            const pageContainer = document.createElement('div');
+            pageContainer.className = 'card-page';
+            
+            const backCardContent = createBackCardContent(startDate, endDate, startDayIndex);
+            
+            // Append four back cards
+            for (let i = 0; i < 4; i++) {
+                pageContainer.appendChild(backCardContent.cloneNode(true));
+            }
+            
+            printArea.appendChild(pageContainer);
+        }
+
+        function createBackCardContent(startDate, endDate, startDayIndex) {
+            const template = document.getElementById('backTemplate');
+            const clone = template.content.cloneNode(true);
+            const card = clone.querySelector('.admit-card');
+
+            const scheduleBody = card.querySelector('.schedule-body');
+            if (examSchedule.length > 0) {
+                scheduleBody.innerHTML = '';
+                examSchedule.forEach((item, index) => {
+                    const dayName = getDayName(item.date, startDayIndex);
+                    const formattedDate = formatDate(item.date);
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>Day ${index + 1}</td>
+                        <td>${dayName}, ${formattedDate}</td>
+                        <td>${item.subject}</td>
+                        <td>${item.time}</td>
+                    `;
+                    scheduleBody.appendChild(row);
+                });
+            } else {
+                scheduleBody.innerHTML = '<tr><td colspan="4">No schedule added yet</td></tr>';
+            }
+            
+            card.querySelector('.teacher-phone').textContent = `Phone: ${teacherPhoneInput.value}`;
+            
+            if (includeTeacherSigCheck.checked && teacherSignature) {
+                const teacherImg = card.querySelector('.teacher-sig img');
+                teacherImg.src = teacherSignature;
+                teacherImg.style.display = 'block';
+            }
+            
+            return card;
+        }
+
+        // Reset form
+        function resetForm() {
+            if (confirm('Are you sure you want to reset all data?')) {
+                // Reset form values
+                schoolNameInput.value = 'BAGMATI SECONDARY SCHOOL';
+                schoolMottoInput.value = 'Quality education is our Motto';
+                schoolAddressInput.value = 'Chandrapur-1, Rautahat';
+                schoolContactInput.value = '9876543210';
+                classInput.value = '10';
+                teacherPhoneInput.value = '9876543210';
+                
+                // Reset checkboxes
+                includeMottoCheck.checked = true;
+                includePhotosCheck.checked = false;
+                includeGuardianContactCheck.checked = true;
+                includeTeacherSigCheck.checked = false;
+                cardTypeToggle.checked = false;
+                
+                // Reset file inputs
+                schoolLogoInput.value = '';
+                studentDataInput.value = '';
+                studentPhotosInput.value = '';
+                principalSigInput.value = '';
+                coordinatorSigInput.value = '';
+                teacherSigInput.value = '';
+                
+                // Clear schedule
+                scheduleInputs.innerHTML = '';
+                
+                // Reset data
+                schoolLogo = null;
+                principalSignature = null;
+                coordinatorSignature = null;
+                teacherSignature = null;
+                studentData = [];
+                studentPhotos = {};
+                examSchedule = [];
+                columnMap = {};
+                
+                // Hide photo upload container
+                photoUploadContainer.style.display = 'none';
+                
+                // Hide modal
+                columnMappingModal.style.display = 'none';
+                
+                // Reset preview
+                renderBlankPreview();
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
