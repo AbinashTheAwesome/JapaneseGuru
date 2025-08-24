@@ -9,7 +9,9 @@ document.getElementById('login-form').addEventListener('submit', function(event)
     const validUsers = [
         { id: 'admin', password: 'admin123' },
         { id: 'student', password: 'student123' },
-    { id: 'abinash', password: 'abinash123' }
+        { id: 'abinash', password: 'abinash123' },
+        { id: 'basic', password: 'basic@#123' },
+        { id: 'bagmati', password:'bagmati@#123' }
     ];
 
     // Check if credentials match
