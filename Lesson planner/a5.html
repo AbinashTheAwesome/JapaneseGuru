@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional Lesson Planner</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.container {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 400px;
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+  height: fit-content;
+  position: sticky;
+  top: 24px;
+}
+
+.sidebar h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.tab-buttons {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 20px;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.tab-buttons button {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.tab-buttons button.active {
+  color: #2563eb;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tab-buttons button:hover:not(.active) {
+  background: #e2e8f0;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #374151;
+  font-weight: 500;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 4px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.actions button {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.actions .print { 
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+.actions .save { 
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+.actions .load { 
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+.actions .clear { 
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+.actions .export { 
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* FIX: CSS variables are defined for easier JS manipulation */
+.lesson-preview {
+  flex: 1;
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  min-height: 800px;
+  max-width: 800px;
+  --primary-color: #2563eb;
+  --secondary-color: #059669; /* Changed for better distinction from primary */
+  --assessment-color: #ea580c;
+  --homework-color: #7c3aed;
+}
+
+.lesson-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 3px solid var(--primary-color);
+}
+
+.lesson-header h1 {
+  font-size: 32px;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.lesson-header .meta {
+  font-size: 18px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-content {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-color);
+  white-space: pre-wrap;
+  min-height: 20px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.info-item h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-item p {
+  color: #374151;
+  font-weight: 500;
+}
+
+.lesson-structure {
+  margin-top: 32px;
+}
+
+.lesson-structure h2 {
+  font-size: 24px;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.activity-section {
+  margin-bottom: 20px;
+  border-left: 4px solid;
+  padding-left: 16px;
+}
+
+/* FIX: Using CSS variables for theme colors */
+.activity-section.introduction { border-color: var(--primary-color); }
+.activity-section.main { border-color: var(--secondary-color); }
+.activity-section.assessment { border-color: var(--assessment-color); }
+.activity-section.homework { border-color: var(--homework-color); }
+
+.activity-section h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activity-section.introduction h4 { color: var(--primary-color); }
+.activity-section.main h4 { color: var(--secondary-color); }
+.activity-section.assessment h4 { color: var(--assessment-color); }
+.activity-section.homework h4 { color: var(--homework-color); }
+
+.activity-content {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  min-height: 20px;
+}
+
+.teacher-notes {
+  margin-top: 32px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 8px;
+  border: 2px dashed #d97706;
+}
+
+.teacher-notes h3 {
+  color: #92400e;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.teacher-notes .content {
+  color: #451a03;
+  white-space: pre-wrap;
+}
+
+.lesson-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #e5e7eb;
+  text-align: right;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.empty-state {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Style customization options */
+.color-picker {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.color-picker label {
+  min-width: 120px;
+  margin-bottom: 0;
+}
+
+.color-input {
+  width: 60px !important;
+  height: 40px;
+  padding: 2px !important;
+}
+
+.template-selector {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.template-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.template-btn {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+.template-btn:hover {
+  background: #e2e8f0;
+}
+
+.template-btn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.export-options {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.export-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.export-btn {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+  background: #e2e8f0;
+}
+
+/* Accessibility improvements */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .sidebar {
+    width: 100%;
+    position: static;
+  }
+  
+  .lesson-preview {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .tab-buttons button {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+  
+  .export-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .template-buttons {
+    flex-direction: column;
+  }
+}
+
+/* PRINT STYLES */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    background: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .sidebar {
+    display: none !important;
+  }
+
+  .container {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  .lesson-preview {
+    width: 100% !important;
+    min-height: auto !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+/* Notification style */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  z-index: 1000;
+  max-width: 300px;
+  transform: translateX(120%);
+  transition: transform 0.4s ease-in-out;
+  color: white;
+}
+
+.notification.success { background: #10b981; }
+.notification.error { background: #ef4444; }
+.notification.info { background: #2563eb; }
+.notification.show { transform: translateX(0); }
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal h2 { margin-bottom: 16px; color: #2563eb; }
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-btn.primary { background: #2563eb; color: white; }
+.modal-btn.secondary { background: #e5e7eb; color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h1>
+        <i class="fas fa-graduation-cap"></i>
+        Lesson Planner
+      </h1>
+
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="basic-info" aria-label="Basic Information Tab">
+          <i class="fas fa-info-circle"></i>
+          Basic Info
+        </button>
+        <button class="tab-btn" data-tab="content" aria-label="Content Tab">
+          <i class="fas fa-edit"></i>
+          Content
+        </button>
+        <button class="tab-btn" data-tab="style" aria-label="Style Tab">
+          <i class="fas fa-palette"></i>
+          Style
+        </button>
+        <button class="tab-btn" data-tab="templates" aria-label="Templates Tab">
+          <i class="fas fa-file-alt"></i>
+          Templates
+        </button>
+      </div>
+
+      <div class="tab-content active" id="basic-info">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <input id="subject" type="text" placeholder="Mathematics" aria-label="Subject">
+          </div>
+          <div class="form-group">
+            <label for="grade">Grade/Class</label>
+            <select id="grade" aria-label="Grade/Class">
+              <option value="">Select grade</option>
+              <option value="Grade 1">Grade 1</option>
+              <option value="Grade 2">Grade 2</option>
+              <option value="Grade 3">Grade 3</option>
+              <option value="Grade 4">Grade 4</option>
+              <option value="Grade 5">Grade 5</option>
+              <option value="Grade 6">Grade 6</option>
+              <option value="Grade 7">Grade 7</option>
+              <option value="Grade 8">Grade 8</option>
+              <option value="Grade 9">Grade 9</option>
+              <option value="Grade 10">Grade 10</option>
+              <option value="Grade 11">Grade 11</option>
+              <option value="Grade 12">Grade 12</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input id="date" type="date" aria-label="Date">
+          </div>
+          <div class="form-group">
+            <label for="duration">Duration</label>
+            <select id="duration" aria-label="Duration">
+              <option value="30 minutes">30 minutes</option>
+              <option value="45 minutes" selected>45 minutes</option>
+              <option value="60 minutes">60 minutes</option>
+              <option value="90 minutes">90 minutes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="topic">Lesson Topic</label>
+          <input id="topic" type="text" placeholder="Introduction to Fractions" aria-label="Lesson Topic">
+        </div>
+
+        <div class="form-group">
+          <label for="teacher">Teacher Name</label>
+          <input id="teacher" type="text" placeholder="Your name" aria-label="Teacher Name">
+        </div>
+      </div>
+
+      <div class="tab-content" id="content">
+        <div class="form-group">
+          <label for="objectives">Learning Objectives</label>
+          <textarea id="objectives" placeholder="Students will be able to..." rows="3" aria-label="Learning Objectives"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="materials">Materials Needed</label>
+          <textarea id="materials" placeholder="Textbook, worksheets, manipulatives..." rows="2" aria-label="Materials Needed"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="introduction">Introduction (5-10 min)</label>
+          <textarea id="introduction" placeholder="Hook, warm-up, review..." rows="2" aria-label="Introduction"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="mainActivity">Main Activity</label>
+          <textarea id="mainActivity" placeholder="Core lesson content and activities..." rows="3" aria-label="Main Activity"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="assessment">Assessment</label>
+          <textarea id="assessment" placeholder="How will you check understanding?" rows="2" aria-label="Assessment"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="homework">Homework/Extension</label>
+          <input id="homework" type="text" placeholder="Assignment or extension activities" aria-label="Homework/Extension">
+        </div>
+        <div class="form-group">
+          <label for="notes">Teacher Notes/Reflection</label>
+          <textarea id="notes" placeholder="Notes for improvement, observations..." rows="2" aria-label="Teacher Notes/Reflection"></textarea>
+        </div>
+      </div>
+
+      <div class="tab-content" id="style">
+        <div class="form-group">
+          <label>Primary Color</label>
+          <div class="color-picker">
+            <input type="color" id="primaryColor" class="color-input" value="#2563eb" aria-label="Primary Color">
+            <span id="primaryColorValue">#2563eb</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Font Family</label>
+          <select id="fontFamily" aria-label="Font Family">
+            <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Default (Segoe UI)</option>
+            <option value="Arial, Helvetica, sans-serif">Arial</option>
+            <option value="'Times New Roman', Times, serif">Times New Roman</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Courier New', Courier, monospace">Courier New</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Base Font Size</label>
+          <select id="fontSize" aria-label="Base Font Size">
+            <option value="14px">Small (14px)</option>
+            <option value="16px" selected>Medium (16px)</option>
+            <option value="18px">Large (18px)</option>
+          </select>
+        </div>
+        <button onclick="applyStyles()" style="background: #2563eb; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%;">
+          <i class="fas fa-check"></i> Apply Styles
+        </button>
+        <button onclick="resetStyles()" style="background: #e5e7eb; color: #374151; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px;">
+          <i class="fas fa-undo"></i> Reset to Default
+        </button>
+      </div>
+
+      <div class="tab-content" id="templates">
+        <div class="template-selector">
+          <h3>Lesson Plan Templates</h3>
+          <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
+            Select a template to quickly populate your lesson plan.
+          </p>
+          <div class="template-buttons">
+            <button class="template-btn" data-template="math">Mathematics</button>
+            <button class="template-btn" data-template="science">Science</button>
+            <button class="template-btn" data-template="language">Language Arts</button>
+            <button class="template-btn" data-template="history">History</button>
+            <button class="template-btn" data-template="elementary">Elementary</button>
+            <button class="template-btn" data-template="blank">Blank</button>
+          </div>
+          <button onclick="applyTemplate()" style="background: #2563eb; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 15px;">
+            <i class="fas fa-magic"></i> Apply Selected Template
+          </button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="save" onclick="saveLesson()" aria-label="Save Lesson Plan">
+          <i class="fas fa-save"></i> Save
+        </button>
+        <button class="load" onclick="loadLesson()" aria-label="Load Lesson Plan">
+          <i class="fas fa-folder-open"></i> Load
+        </button>
+        <button class="clear" onclick="clearForm()" aria-label="Clear Form">
+          <i class="fas fa-trash"></i> Clear
+        </button>
+        <button class="export" onclick="showExportOptions()" aria-label="Export Options">
+          <i class="fas fa-download"></i> Export
+        </button>
+      </div>
+    </div>
+
+    <div class="lesson-preview" id="lesson-preview">
+      <div class="lesson-header">
+        <h1 id="preview-title">Subject Lesson Plan</h1>
+        <div class="meta" id="preview-meta">Grade • Date</div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>Lesson Topic</h3>
+          <p id="preview-topic" class="empty-state">Topic will appear here</p>
+        </div>
+        <div class="info-item">
+          <h3>Duration</h3>
+          <p id="preview-duration">45 minutes</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <i class="fas fa-bullseye"></i>
+          Learning Objectives
+        </div>
+        <div class="section-content" id="preview-objectives">
+          Learning objectives will appear here...
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <i class="fas fa-tools"></i>
+          Materials Needed
+        </div>
+        <div class="section-content" id="preview-materials">
+          Materials list will appear here...
+        </div>
+      </div>
+
+      <div class="lesson-structure">
+        <h2>Lesson Structure</h2>
+        <div class="activity-section introduction">
+          <h4><i class="fas fa-play-circle"></i> Introduction</h4>
+          <div class="activity-content" id="preview-introduction">
+            Introduction activities will appear here...
+          </div>
+        </div>
+        <div class="activity-section main">
+          <h4><i class="fas fa-cogs"></i> Main Activity</h4>
+          <div class="activity-content" id="preview-main-activity">
+            Main lesson activities will appear here...
+          </div>
+        </div>
+        <div class="activity-section assessment">
+          <h4><i class="fas fa-check-circle"></i> Assessment</h4>
+          <div class="activity-content" id="preview-assessment">
+            Assessment methods will appear here...
+          </div>
+        </div>
+        <div class="activity-section homework">
+          <h4><i class="fas fa-home"></i> Homework/Extension</h4>
+          <div class="activity-content" id="preview-homework">
+            Homework assignments will appear here...
+          </div>
+        </div>
+      </div>
+
+      <div class="teacher-notes" id="teacher-notes-section" style="display: none;">
+        <h3><i class="fas fa-sticky-note"></i> Teacher Notes & Reflection</h3>
+        <div class="content" id="preview-notes"></div>
+      </div>
+
+      <div class="lesson-footer">
+        <p>Teacher: <span id="preview-teacher">Teacher Name</span></p>
+        <p>Generated on <span id="current-date"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="exportModal">
+    <div class="modal-content">
+      <h2>Export Lesson Plan</h2>
+      <p>Choose your preferred export format:</p>
+      <div class="export-buttons" style="grid-template-columns: 1fr; margin-top: 20px;">
+        <button class="export-btn" onclick="exportToPDF()">
+          <i class="fas fa-file-pdf"></i> PDF (Best for printing)
+        </button>
+        <button class="export-btn" onclick="exportToWord()">
+          <i class="fas fa-file-word"></i> Microsoft Word (.doc)
+        </button>
+        <button class="export-btn" onclick="exportToHTML()">
+          <i class="fas fa-code"></i> HTML Web Page
+        </button>
+        <button class="export-btn" onclick="saveLesson()">
+          <i class="fas fa-save"></i> JSON (For future editing)
+        </button>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" onclick="closeModal('exportModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('current-date').textContent = new Date().toLocaleDateString();
+      
+      const inputs = document.querySelectorAll('input, textarea, select');
+      inputs.forEach(element => {
+        element.addEventListener('input', updatePreview);
+      });
+      
+      document.getElementById('primaryColor').addEventListener('input', (e) => {
+        document.getElementById('primaryColorValue').textContent = e.target.value;
+      });
+      
+      loadFromLocalStorage();
+      initTemplateButtons();
+      updatePreview();
+      
+      setInterval(saveToLocalStorage, 30000);
+    });
+
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function updatePreview() {
+      const subject = document.getElementById('subject').value || 'Subject';
+      const grade = document.getElementById('grade').value || 'Grade';
+      const dateValue = document.getElementById('date').value;
+      const date = dateValue 
+        ? new Date(dateValue + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        : 'Date';
+      
+      document.getElementById('preview-title').textContent = `${subject} Lesson Plan`;
+      document.getElementById('preview-meta').textContent = `${grade} • ${date}`;
+      
+      updateField('topic', 'Topic will appear here');
+      updateField('duration');
+      updateField('objectives', 'Learning objectives will appear here...');
+      updateField('materials', 'Materials list will appear here...');
+      updateField('introduction', 'Introduction activities will appear here...');
+      updateField('mainActivity', 'Main lesson activities will appear here...', 'main-activity');
+      updateField('assessment', 'Assessment methods will appear here...');
+      updateField('homework', 'Homework assignments will appear here...');
+      updateField('teacher', 'Teacher Name');
+      
+      const notes = document.getElementById('notes').value;
+      const notesSection = document.getElementById('teacher-notes-section');
+      if (notes.trim()) {
+        notesSection.style.display = 'block';
+        document.getElementById('preview-notes').textContent = notes;
+      } else {
+        notesSection.style.display = 'none';
+      }
+      
+      saveToLocalStorage();
+    }
+
+    function updateField(inputId, placeholder, previewIdSuffix) {
+      const value = document.getElementById(inputId).value;
+      const previewId = `preview-${previewIdSuffix || inputId}`;
+      const previewElement = document.getElementById(previewId);
+
+      if (previewElement) {
+        previewElement.textContent = value || placeholder || '';
+        if (placeholder) {
+          previewElement.classList.toggle('empty-state', !value);
+        }
+      }
+    }
+
+    function getFormData() {
+      return {
+        subject: document.getElementById('subject').value,
+        grade: document.getElementById('grade').value,
+        date: document.getElementById('date').value,
+        duration: document.getElementById('duration').value,
+        topic: document.getElementById('topic').value,
+        objectives: document.getElementById('objectives').value,
+        materials: document.getElementById('materials').value,
+        introduction: document.getElementById('introduction').value,
+        mainActivity: document.getElementById('mainActivity').value,
+        assessment: document.getElementById('assessment').value,
+        homework: document.getElementById('homework').value,
+        notes: document.getElementById('notes').value,
+        teacher: document.getElementById('teacher').value,
+        primaryColor: document.getElementById('primaryColor').value,
+        fontFamily: document.getElementById('fontFamily').value,
+        fontSize: document.getElementById('fontSize').value
+      };
+    }
+
+    function loadFormData(data) {
+      Object.keys(data).forEach(key => {
+        const element = document.getElementById(key);
+        if (element) {
+          element.value = data[key] || '';
+        }
+      });
+      document.getElementById('primaryColorValue').textContent = data.primaryColor || '#2563eb';
+      applyStyles();
+      updatePreview();
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem('lessonPlanData', JSON.stringify(getFormData()));
+    }
+
+    function loadFromLocalStorage() {
+      const savedData = localStorage.getItem('lessonPlanData');
+      if (savedData) {
+        try {
+          loadFormData(JSON.parse(savedData));
+        } catch (error) {
+          console.error('Error loading from localStorage:', error);
+        }
+      }
+    }
+
+    function saveLesson() {
+      const lessonData = getFormData();
+      const dataStr = JSON.stringify(lessonData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `lesson-plan-${lessonData.subject || 'untitled'}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showNotification('Lesson Plan Saved', 'JSON file has been downloaded.', 'success');
+    }
+
+    function loadLesson() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            try {
+              const data = JSON.parse(e.target.result);
+              loadFormData(data);
+              showNotification('Lesson Plan Loaded', 'Data has been loaded successfully.', 'success');
+            } catch (error) {
+              showNotification('Error Loading File', 'The selected file is not a valid lesson plan.', 'error');
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    }
+
+    function clearForm() {
+      if (confirm('Are you sure you want to clear all fields? This action cannot be undone.')) {
+        document.querySelectorAll('input, textarea').forEach(el => {
+            if (!['date', 'color', 'submit', 'button'].includes(el.type)) el.value = '';
+        });
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('duration').value = '45 minutes';
+        document.getElementById('grade').value = '';
+        resetStyles();
+        updatePreview();
+        showNotification('Form Cleared', 'All fields have been reset.', 'info');
+      }
+    }
+
+    function printLesson() {
+      window.print();
+    }
+
+    // FIX: Refactored to use CSS variables for reliable styling.
+    function applyStyles() {
+      const primaryColor = document.getElementById('primaryColor').value;
+      const fontFamily = document.getElementById('fontFamily').value;
+      const fontSize = document.getElementById('fontSize').value;
+      const preview = document.getElementById('lesson-preview');
+      
+      preview.style.setProperty('--primary-color', primaryColor);
+      preview.style.fontFamily = fontFamily;
+      preview.style.fontSize = fontSize;
+      
+      showNotification('Styles Applied', 'Your custom styles have been applied.', 'success');
+    }
+    
+    // FIX: Works correctly with the new CSS variable approach.
+    function resetStyles() {
+      const preview = document.getElementById('lesson-preview');
+      preview.style.removeProperty('--primary-color');
+      preview.style.removeProperty('font-family');
+      preview.style.removeProperty('font-size');
+      
+      document.getElementById('primaryColor').value = '#2563eb';
+      document.getElementById('primaryColorValue').textContent = '#2563eb';
+      document.getElementById('fontFamily').value = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+      document.getElementById('fontSize').value = "16px";
+      
+      showNotification('Styles Reset', 'All styles have been reset to default.', 'info');
+    }
+    
+    function initTemplateButtons() {
+      const templateButtons = document.querySelectorAll('.template-btn');
+      templateButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          templateButtons.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    }
+    
+    function applyTemplate() {
+      const selected = document.querySelector('.template-btn.active')?.dataset.template || 'blank';
+      const templates = {
+        math: { subject: "Mathematics", topic: "Introduction to Fractions", objectives: "Students will be able to:\n- Identify fractions as parts of a whole\n- Compare fractions with like denominators", materials: "Fraction circles, worksheets, whiteboards", introduction: "Begin with a real-world problem about sharing pizza.", mainActivity: "1. Demonstrate fractions using visual aids\n2. Hands-on activity with fraction manipulatives\n3. Guided practice", assessment: "Exit ticket: Solve 3 fraction problems.", homework: "Complete fraction worksheet.", notes: "Some students struggled with the concept of numerator vs. denominator." },
+        science: { subject: "Science", topic: "States of Matter", objectives: "Students will be able to:\n- Identify the three states of matter\n- Describe the properties of solids, liquids, and gases", materials: "Ice, water, heat source, balloons", introduction: "Show a glass with ice water. Ask students to observe all three states.", mainActivity: "1. Station rotation exploring materials\n2. Demonstration of phase changes", assessment: "Lab worksheet documenting observations.", homework: "Find examples of solids, liquids, and gases at home.", notes: "The phase change demonstration was particularly effective." },
+        language: { subject: "Language Arts", topic: "Character Analysis", objectives: "Students will be able to:\n- Identify character traits in a story\n- Use textual evidence to support analysis", materials: "Short story text, graphic organizers", introduction: "Discuss favorite characters from books/movies.", mainActivity: "1. Read short story together\n2. Model character analysis\n3. Small groups analyze other characters", assessment: "Written paragraph analyzing a character.", homework: "Analyze a character from an independent reading book.", notes: "Students need more practice with textual evidence." },
+        history: { subject: "History", topic: "Ancient Civilizations", objectives: "Students will be able to:\n- Identify key characteristics of ancient civilizations\n- Compare aspects of different societies", materials: "Maps, images of artifacts, primary source docs", introduction: "Show images of famous ancient structures.", mainActivity: "1. Jigsaw activity with different civilizations\n2. Create comparison charts", assessment: "Quiz on key characteristics.", homework: "Research one innovation from an ancient civilization.", notes: "The jigsaw activity worked well." },
+        elementary: { subject: "General", topic: "Weather Patterns", objectives: "Students will be able to:\n- Identify different types of weather\n- Describe appropriate clothing for different conditions", materials: "Weather charts, clothing props, art supplies", introduction: "Sing a weather song and do weather movements.", mainActivity: "1. Weather chart discussion\n2. Dress-the-person activity\n3. Weather journal drawing", assessment: "Observation during activities.", homework: "Draw a picture of today's weather.", notes: "Kinesthetic activities were very engaging." },
+        blank: { subject: "", topic: "", objectives: "", materials: "", introduction: "", mainActivity: "", assessment: "", homework: "", notes: "" }
+      };
+      
+      const template = templates[selected];
+      Object.keys(template).forEach(key => {
+        const el = document.getElementById(key);
+        if (el) el.value = template[key];
+      });
+      
+      updatePreview();
+      showNotification('Template Applied', `The ${selected} template has been applied.`, 'success');
+    }
+    
+    // FIX: Rewritten PDF export logic to handle multi-page content correctly.
+    function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const previewElement = document.getElementById('lesson-preview');
+      showNotification('Exporting PDF...', 'Please wait while your PDF is generated.', 'info');
+
+      html2canvas(previewElement, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
+        
+        const imgWidth = pdfWidth;
+        const imgHeight = imgWidth / canvasAspectRatio;
+        
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+        
+        while (heightLeft > 0) {
+          position -= pdfHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+        
+        pdf.save(`lesson-plan-${document.getElementById('subject').value || 'untitled'}.pdf`);
+        showNotification('PDF Exported', 'Your lesson plan is ready.', 'success');
+      });
+    }
+    
+    function exportToWord() {
+      const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Lesson Plan Export</title></head><body>";
+      const footer = "</body></html>";
+      const sourceHTML = header + document.getElementById('lesson-preview').innerHTML + footer;
+      
+      const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+      const downloadLink = document.createElement("a");
+      document.body.appendChild(downloadLink);
+      downloadLink.href = source;
+      downloadLink.download = `lesson-plan-${document.getElementById('subject').value || 'untitled'}.doc`;
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      showNotification('Word File Generated', 'Check your downloads folder.', 'success');
+    }
+    
+    function exportToHTML() {
+      const sourceHTML = `<!DOCTYPE html><html><head><meta charset='utf-8'><title>Lesson Plan</title><style>${Array.from(document.styleSheets[0].cssRules).map(rule => rule.cssText).join('')}</style></head><body>${document.querySelector('.lesson-preview').outerHTML}</body></html>`;
+      const source = 'data:text/html;charset=utf-8,' + encodeURIComponent(sourceHTML);
+      const downloadLink = document.createElement("a");
+      document.body.appendChild(downloadLink);
+      downloadLink.href = source;
+      downloadLink.download = `lesson-plan-${document.getElementById('subject').value || 'untitled'}.html`;
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      showNotification('HTML Exported', 'Web page has been downloaded.', 'success');
+    }
+    
+    function showExportOptions() {
+      document.getElementById('exportModal').style.display = 'flex';
+    }
+    
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    function showNotification(title, message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px;">${title}</div><div>${message}</div>`;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add('show'), 10);
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => document.body.removeChild(notification), 500);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

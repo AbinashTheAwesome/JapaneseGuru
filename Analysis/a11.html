@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marksheet Analysis Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Academic blue theme */
+      --primary: #2563eb;
+      --primary-light: #3b82f6;
+      --primary-dark: #1d4ed8;
+      --success: #059669;
+      --success-light: #10b981;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --background: #ffffff;
+      --surface: #f8fafc;
+      --surface-light: #f1f5f9;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --gradient-primary: linear-gradient(135deg, #2563eb, #3b82f6);
+      --gradient-success: linear-gradient(135deg, #059669, #10b981);
+      --gradient-warning: linear-gradient(135deg, #d97706, #f59e0b);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Left Sidebar - Form */
+    .form-sidebar {
+      width: 400px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .form-header {
+      margin-bottom: 2rem;
+    }
+
+    .form-header h1 {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.75rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    /* Right Side - Preview */
+    .preview-area {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--background);
+      padding: 2rem;
+    }
+
+    /* Form Styles */
+    .form-section {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .form-section h3 {
+      color: var(--text);
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text);
+      font-size: 0.875rem;
+    }
+
+    input[type="text"], input[type="number"], input[type="file"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+      background: var(--background);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    /* Subject Management */
+    .subject-list {
+      space-y: 0.75rem;
+    }
+
+    .subject-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .subject-input {
+      flex: 1;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--gradient-success);
+      color: white;
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-small {
+      padding: 0.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      justify-content: center;
+    }
+
+    /* Notes */
+    .notes {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: var(--surface-light);
+      padding: 0.75rem;
+      border-radius: 6px;
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Preview Area Styles */
+    .preview-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--gradient-primary);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      color: white;
+      font-size: 2rem;
+    }
+
+    /* Student Card Styles */
+    .student-page {
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      page-break-after: always;
+    }
+
+    .student-header {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .student-header h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .student-content {
+      padding: 1.5rem;
+    }
+
+    .student-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .student-table th, .student-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .student-table th {
+      background: var(--surface);
+      font-weight: 600;
+      color: var(--text);
+      width: 25%;
+    }
+
+    /* Statistics Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .stat-card.primary {
+      background: var(--gradient-primary);
+      color: white;
+    }
+
+    .stat-card.success {
+      background: var(--gradient-success);
+      color: white;
+    }
+
+    .stat-card.warning {
+      background: var(--gradient-warning);
+      color: white;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      opacity: 0.9;
+    }
+
+    /* Pass/Fail Visual */
+    .pass-fail-container {
+      margin: 1.5rem 0;
+    }
+
+    .pass-fail-visual {
+      width: 100%;
+      height: 40px;
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .pass-section {
+      background: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    .fail-section {
+      background: var(--danger);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+    }
+
+    .pass-fail-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .pass-fail-table th, .pass-fail-table td {
+      padding: 0.75rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pass-fail-table th {
+      background: var(--surface);
+      font-weight: 600;
+    }
+
+    /* Charts */
+    .charts {
+      margin-top: 1.5rem;
+    }
+
+    .chart-container {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+
+    .chart-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    canvas {
+      max-width: 100%;
+      height: 300px !important;
+    }
+
+    /* Loading State */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Print Styles */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      
+      body {
+        background: white;
+        color: black;
+      }
+      
+      .app-container {
+        display: block;
+      }
+      
+      .form-sidebar {
+        display: none;
+      }
+      
+      .preview-area {
+        padding: 0;
+      }
+      
+      .student-page {
+        margin: 0;
+        box-shadow: none;
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+      }
+      
+      .student-header {
+        background: #f5f5f5 !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact;
+      }
+      
+      .pass-section, .fail-section {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      canvas {
+        height: 250px !important;
+      }
+      
+      @page {
+        size: A4;
+        margin: 15mm;
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .app-container {
+        flex-direction: column;
+      }
+      
+      .form-sidebar {
+        width: 100%;
+        max-height: 50vh;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .radio-group {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-sidebar {
+        padding: 1rem;
+      }
+      
+      .preview-area {
+        padding: 1rem;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Left Sidebar - Form -->
+    <div class="form-sidebar no-print">
+      <div class="form-header">
+        <h1>Marksheet Analysis</h1>
+        <p>Generate comprehensive student performance reports</p>
+      </div>
+
+      <form id="data-form" onsubmit="handleAnalyze(event)">
+        <!-- School Details -->
+        <div class="form-section">
+          <h3>School Details</h3>
+          <div class="form-group">
+            <label for="school-name">School Name</label>
+            <input type="text" id="school-name" name="school-name" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="class-grade">Class / Grade</label>
+              <input type="text" id="class-grade" name="class-grade" required>
+            </div>
+            <div class="form-group">
+              <label for="term">Term</label>
+              <input type="text" id="term" name="term" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="year-bs">Year (B.S.)</label>
+              <input type="text" id="year-bs" name="year-bs" required>
+            </div>
+            <div class="form-group">
+              <label for="issue-date">Issue Date (B.S.)</label>
+              <input type="text" id="issue-date" name="issue-date" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Marks Configuration -->
+        <div class="form-section">
+          <h3>Marks Configuration</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="theory-pass">Theory Pass Marks</label>
+              <input type="number" id="theory-pass" name="theory-pass" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="practical-pass">Practical Pass Marks</label>
+              <input type="number" id="practical-pass" name="practical-pass" min="0" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="theory-full">Theory Full Marks</label>
+              <input type="number" id="theory-full" name="theory-full" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="practical-full">Practical Full Marks</label>
+              <input type="number" id="practical-full" name="practical-full" min="0" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analysis Settings -->
+        <div class="form-section">
+          <h3>Analysis Settings</h3>
+          <div class="form-group">
+            <label>Analysis Mode</label>
+            <div class="radio-group">
+              <div class="radio-item">
+                <input type="radio" name="analysis-mode" value="total" id="total" checked>
+                <label for="total">Total</label>
+              </div>
+              <div class="radio-item">
+                <input type="radio" name="analysis-mode" value="theory" id="theory">
+                <label for="theory">Theory</label>
+              </div>
+              <div class="radio-item">
+                <input type="radio" name="analysis-mode" value="practical" id="practical">
+                <label for="practical">Practical</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Display Mode</label>
+            <div class="radio-group">
+              <div class="radio-item">
+                <input type="radio" name="display-mode" value="marks" id="marks" checked>
+                <label for="marks">Marks</label>
+              </div>
+              <div class="radio-item">
+                <input type="radio" name="display-mode" value="grades" id="grades">
+                <label for="grades">Grades</label>
+              </div>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="show-percentage" name="show-percentage">
+              <label for="show-percentage">Show Percentage Alongside GPA</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject Management -->
+        <div class="form-section">
+          <h3>Subject Management</h3>
+          <div id="subject-list" class="subject-list">
+            <div class="subject-item">
+              <input type="text" class="subject-name subject-input" placeholder="Subject name" required>
+              <button type="button" class="btn btn-danger btn-small" onclick="removeSubject(this)" style="display: none;">×</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline btn-full" onclick="addSubject()">+ Add Subject</button>
+        </div>
+
+        <!-- File Upload -->
+        <div class="form-section">
+          <h3>Upload Student Data</h3>
+          <div class="form-group">
+            <label for="data-file">Upload .xlsx or .csv file</label>
+            <input type="file" id="data-file" name="data-file" accept=".xlsx,.csv" required>
+          </div>
+          <div class="notes">
+            <strong>File Format:</strong> Must include Roll and Name columns. Subject columns like Subject_Math_TH, Subject_Math_PR. Optional: TotalDays, Present, Absent.
+            <br><br>
+            <a href="data:text/csv;charset=utf-8,Roll,Name,Subject_Math_TH,Subject_Math_PR,Subject_Science_TH,Subject_Science_PR,TotalDays,Present,Absent%0A1,Student A,80,18,75,20,100,95,5%0A2,Student B,60,15,50,10,100,90,10%0A3,Student C,90,20,85,19,100,92,8%0A4,Student D,70,12,65,15,100,88,12%0A5,Student E,85,17,80,18,100,94,6%0A6,Student F,55,10,45,8,100,85,15%0A7,Student G,95,22,90,20,100,96,4%0A8,Student H,65,14,60,12,100,89,11%0A9,Student I,75,16,70,14,100,91,9%0A10,Student J,50,9,40,7,100,87,13" download="sample.csv">Download sample file</a>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-section">
+          <button type="button" class="btn btn-outline btn-full" onclick="loadSample()" style="margin-bottom: 1rem;">📝 Load Sample Data</button>
+          <button type="submit" class="btn btn-primary btn-full" style="margin-bottom: 1rem;">🎯 Generate Analysis</button>
+          <button type="button" class="btn btn-outline btn-full" onclick="printResults()" style="margin-bottom: 1rem;">🖨️ Print Reports</button>
+          <button type="button" class="btn btn-outline btn-full" onclick="clearForm()">🗑️ Clear Form</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Right Side - Preview -->
+    <div class="preview-area">
+      <div class="preview-card">
+        <div id="results">
+          <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <div>
+              <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text);">Ready to Analyze</h3>
+              <p>Upload your student data file or load sample data to generate comprehensive marksheet analysis with charts and insights.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let parsedData = [];
+    let subjects = [];
+    let theoryPass = 0;
+    let practicalPass = 0;
+    let theoryFull = 0;
+    let practicalFull = 0;
+    let analysisMode = 'total';
+    let displayMode = 'marks';
+    let showPercentage = false;
+    let schoolDetails = {};
+    let gradingScale = [
+      { grade: 'A+', gpa: 4.0, min: 90, max: 100 },
+      { grade: 'A', gpa: 3.6, min: 80, max: 89.99 },
+      { grade: 'B+', gpa: 3.2, min: 70, max: 79.99 },
+      { grade: 'B', gpa: 2.8, min: 60, max: 69.99 },
+      { grade: 'C+', gpa: 2.4, min: 50, max: 59.99 },
+      { grade: 'C', gpa: 2.0, min: 40, max: 49.99 },
+      { grade: 'D', gpa: 1.6, min: 35, max: 39.99 },
+      { grade: 'NG', gpa: 0.0, min: 0, max: 34.99 }
+    ];
+    let classAverages = {};
+    let passCount = 0;
+    let failCount = 0;
+    let barCharts = [];
+
+    function addSubject() {
+      const subjectList = document.getElementById('subject-list');
+      const subjectCount = subjectList.children.length;
+      
+      if (subjectCount >= 10) {
+        alert('Maximum 10 subjects allowed for clear display.');
+        return;
+      }
+      
+      const subjectItem = document.createElement('div');
+      subjectItem.className = 'subject-item';
+      subjectItem.innerHTML = `
+        <input type="text" class="subject-name subject-input" placeholder="Subject name" required>
+        <button type="button" class="btn btn-danger btn-small" onclick="removeSubject(this)">×</button>
+      `;
+      subjectList.appendChild(subjectItem);
+      
+      // Show remove buttons when there's more than one subject
+      updateRemoveButtons();
+    }
+
+    function removeSubject(button) {
+      const subjectList = document.getElementById('subject-list');
+      if (subjectList.children.length > 1) {
+        button.parentElement.remove();
+        updateRemoveButtons();
+      }
+    }
+
+    function updateRemoveButtons() {
+      const subjectList = document.getElementById('subject-list');
+      const removeButtons = subjectList.querySelectorAll('.btn-danger');
+      removeButtons.forEach(btn => {
+        btn.style.display = subjectList.children.length > 1 ? 'flex' : 'none';
+      });
+    }
+
+    function loadSample() {
+      // Set form values
+      document.getElementById('school-name').value = "Sample School";
+      document.getElementById('class-grade').value = "10";
+      document.getElementById('term').value = "First Term";
+      document.getElementById('year-bs').value = "2080";
+      document.getElementById('issue-date').value = "2080-01-15";
+      document.getElementById('theory-pass').value = "40";
+      document.getElementById('practical-pass').value = "16";
+      document.getElementById('theory-full').value = "100";
+      document.getElementById('practical-full').value = "25";
+      
+      // Set subjects
+      const subjectList = document.getElementById('subject-list');
+      subjectList.innerHTML = '';
+      const sampleSubjects = ['Math', 'Science'];
+      sampleSubjects.forEach((subject, index) => {
+        const subjectItem = document.createElement('div');
+        subjectItem.className = 'subject-item';
+        subjectItem.innerHTML = `
+          <input type="text" class="subject-name subject-input" value="${subject}" required>
+          <button type="button" class="btn btn-danger btn-small" onclick="removeSubject(this)" style="display: ${index > 0 ? 'flex' : 'none'};">×</button>
+        `;
+        subjectList.appendChild(subjectItem);
+      });
+      
+      // Load sample data
+      const sampleData = `Roll,Name,Subject_Math_TH,Subject_Math_PR,Subject_Science_TH,Subject_Science_PR,TotalDays,Present,Absent
+1,Student A,80,18,75,20,100,95,5
+2,Student B,60,15,50,10,100,90,10
+3,Student C,90,20,85,19,100,92,8
+4,Student D,70,12,65,15,100,88,12
+5,Student E,85,17,80,18,100,94,6
+6,Student F,55,10,45,8,100,85,15
+7,Student G,95,22,90,20,100,96,4
+8,Student H,65,14,60,12,100,89,11
+9,Student I,75,16,70,14,100,91,9
+10,Student J,50,9,40,7,100,87,13`;
+      
+      // Create file and trigger processing
+      const blob = new Blob([sampleData], { type: 'text/csv' });
+      const file = new File([blob], 'sample.csv', { type: 'text/csv' });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      document.getElementById('data-file').files = dataTransfer.files;
+      
+      alert('Sample data loaded! Click "Generate Analysis" to see results.');
+    }
+
+    function handleAnalyze(event) {
+      event.preventDefault();
+      
+      // Show loading
+      document.getElementById('results').innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <span>Processing student data...</span>
+        </div>
+      `;
+      
+      const form = document.getElementById('data-form');
+      const formData = new FormData(form);
+      
+      // Get form values
+      schoolDetails = {
+        school: formData.get('school-name'),
+        class: formData.get('class-grade'),
+        term: formData.get('term'),
+        year: formData.get('year-bs'),
+        issueDate: formData.get('issue-date')
+      };
+      
+      theoryPass = parseFloat(formData.get('theory-pass')) || 0;
+      practicalPass = parseFloat(formData.get('practical-pass')) || 0;
+      theoryFull = parseFloat(formData.get('theory-full')) || 0;
+      practicalFull = parseFloat(formData.get('practical-full')) || 0;
+      analysisMode = formData.get('analysis-mode');
+      displayMode = formData.get('display-mode');
+      showPercentage = formData.get('show-percentage') === 'on';
+
+      // Get subjects
+      subjects = Array.from(document.querySelectorAll('.subject-name'))
+        .map(input => input.value.trim())
+        .filter(name => name);
+      
+      if (subjects.length === 0) {
+        alert('Please add at least one subject.');
+        return;
+      }
+
+      const fileInput = document.getElementById('data-file');
+      if (!fileInput.files.length) {
+        alert('Please upload a file.');
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          if (file.name.endsWith('.csv')) {
+            parseCSV(e.target.result);
+          } else if (file.name.endsWith('.xlsx')) {
+            parseXLSX(e.target.result);
+          }
+        } catch (error) {
+          alert('Error processing file: ' + error.message);
+          showEmptyState();
+        }
+      };
+      
+      if (file.name.endsWith('.xlsx')) {
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.readAsText(file);
+      }
+    }
+
+    function parseCSV(data) {
+      Papa.parse(data, {
+        header: true,
+        complete: function(results) {
+          processData(results.data);
+        },
+        error: function(error) {
+          alert('CSV parsing error: ' + error.message);
+          showEmptyState();
+        }
+      });
+    }
+
+    function parseXLSX(data) {
+      try {
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
+        processData(json);
+      } catch (error) {
+        alert('Excel file parsing error: ' + error.message);
+        showEmptyState();
+      }
+    }
+
+    function getGradeAndGPA(marks, fullMarks) {
+      const percentage = (marks / fullMarks) * 100;
+      for (const scale of gradingScale) {
+        if (percentage >= scale.min && percentage <= scale.max) {
+          return { grade: scale.grade, gpa: scale.gpa };
+        }
+      }
+      return { grade: 'NG', gpa: 0.0 };
+    }
+
+    function processData(data) {
+      parsedData = data.filter(row => row.Roll && row.Name);
+      
+      if (parsedData.length === 0) {
+        alert('No valid data found. Please check file format.');
+        showEmptyState();
+        return;
+      }
+
+      // Initialize class averages
+      classAverages = {};
+      subjects.forEach(sub => {
+        classAverages[sub] = { 
+          theory: { total: 0, count: 0 }, 
+          practical: { total: 0, count: 0 }, 
+          total: { total: 0, count: 0 } 
+        };
+      });
+
+      // Process student data
+      parsedData.forEach(student => {
+        student.theoryMarks = 0;
+        student.practicalMarks = 0;
+        student.totalMarks = 0;
+        student.theoryGpaSum = 0;
+        student.practicalGpaSum = 0;
+        student.totalGpaSum = 0;
+        student.subjects = {};
+        let theoryAllPassed = true;
+        let practicalAllPassed = true;
+        let totalAllPassed = true;
+        let failedSubjects = [];
+
+        subjects.forEach(sub => {
+          const thKey = `Subject_${sub}_TH`;
+          const prKey = `Subject_${sub}_PR`;
+          const th = parseFloat(student[thKey]) || 0;
+          const pr = parseFloat(student[prKey]) || 0;
+          const total = th + pr;
+          student.subjects[sub] = { th, pr, total };
+
+          // Update class averages
+          if (th) {
+            classAverages[sub].theory.total += th;
+            classAverages[sub].theory.count += 1;
+          }
+          if (pr) {
+            classAverages[sub].practical.total += pr;
+            classAverages[sub].practical.count += 1;
+          }
+          if (th || pr) {
+            classAverages[sub].total.total += total;
+            classAverages[sub].total.count += 1;
+          }
+
+          // Pass/fail per subject
+          const thPass = th >= theoryPass || th === 0;
+          const prPass = pr >= practicalPass || pr === 0;
+          if (!thPass) {
+            theoryAllPassed = false;
+            failedSubjects.push(`${sub} (Theory)`);
+          }
+          if (!prPass) {
+            practicalAllPassed = false;
+            failedSubjects.push(`${sub} (Practical)`);
+          }
+          if (!thPass || !prPass) {
+            totalAllPassed = false;
+          }
+
+          // GPA calculation
+          student.theoryGpaSum += getGradeAndGPA(th, theoryFull).gpa;
+          student.practicalGpaSum += getGradeAndGPA(pr, practicalFull).gpa;
+          student.totalGpaSum += getGradeAndGPA(total, theoryFull + practicalFull).gpa;
+
+          student.theoryMarks += th;
+          student.practicalMarks += pr;
+          student.totalMarks += total;
+        });
+
+        student.theoryGpa = student.theoryGpaSum / subjects.length;
+        student.practicalGpa = student.practicalGpaSum / subjects.length;
+        student.totalGpa = student.totalGpaSum / subjects.length;
+        student.theoryPercentage = (student.theoryMarks / (subjects.length * theoryFull)) * 100;
+        student.practicalPercentage = (student.practicalMarks / (subjects.length * practicalFull)) * 100;
+        student.totalPercentage = (student.totalMarks / (subjects.length * (theoryFull + practicalFull))) * 100;
+        student.theoryPass = theoryAllPassed;
+        student.practicalPass = practicalAllPassed;
+        student.totalPass = totalAllPassed;
+        student.failedSubjects = failedSubjects;
+      });
+
+      // Finalize class averages
+      subjects.forEach(sub => {
+        classAverages[sub].theory.avg = classAverages[sub].theory.count > 0 ? 
+          classAverages[sub].theory.total / classAverages[sub].theory.count : 0;
+        classAverages[sub].practical.avg = classAverages[sub].practical.count > 0 ? 
+          classAverages[sub].practical.total / classAverages[sub].practical.count : 0;
+        classAverages[sub].total.avg = classAverages[sub].total.count > 0 ? 
+          classAverages[sub].total.total / classAverages[sub].total.count : 0;
+      });
+
+      // Calculate ranks
+      const sortedTheory = [...parsedData].sort((a, b) => b.theoryMarks - a.theoryMarks);
+      const sortedPractical = [...parsedData].sort((a, b) => b.practicalMarks - a.practicalMarks);
+      const sortedTotal = [...parsedData].sort((a, b) => b.totalMarks - a.totalMarks);
+      
+      // Assign ranks
+      [sortedTheory, sortedPractical, sortedTotal].forEach((sorted, sortIndex) => {
+        let rank = 1;
+        let lastMarks = null;
+        
+        sorted.forEach((student, index) => {
+          const marks = sortIndex === 0 ? student.theoryMarks : 
+                       sortIndex === 1 ? student.practicalMarks : student.totalMarks;
+          
+          if (index > 0 && marks !== lastMarks) {
+            rank = index + 1;
+          }
+          
+          if (sortIndex === 0) student.theoryRank = rank;
+          else if (sortIndex === 1) student.practicalRank = rank;
+          else student.totalRank = rank;
+          
+          lastMarks = marks;
+        });
+      });
+
+      // Calculate pass/fail for visual representation
+      passCount = parsedData.filter(s => 
+        analysisMode === 'theory' ? s.theoryPass : 
+        analysisMode === 'practical' ? s.practicalPass : s.totalPass
+      ).length;
+      failCount = parsedData.length - passCount;
+
+      renderResults();
+    }
+
+    function renderResults() {
+      // Clear previous charts
+      barCharts.forEach(chart => chart.destroy());
+      barCharts = [];
+      
+      const results = document.getElementById('results');
+      
+      // Calculate overview stats
+      const totalStudents = parsedData.length;
+      const averageGPA = parsedData.reduce((sum, student) => sum + student.totalGpa, 0) / totalStudents;
+      const topPerformer = parsedData.reduce((top, student) => 
+        student.totalMarks > top.totalMarks ? student : top
+      );
+      const passRate = Math.round((passCount / totalStudents) * 100);
+
+      let html = `
+        <!-- Overview Statistics -->
+        <div style="padding: 2rem;">
+          <div class="stats-grid">
+            <div class="stat-card primary">
+              <div class="stat-value">${totalStudents}</div>
+              <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-card success">
+              <div class="stat-value">${passRate}%</div>
+              <div class="stat-label">Pass Rate</div>
+            </div>
+            <div class="stat-card warning">
+              <div class="stat-value">${averageGPA.toFixed(2)}</div>
+              <div class="stat-label">Average GPA</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" style="font-size: 1.2rem; color: var(--primary);">${topPerformer.Name}</div>
+              <div class="stat-label">Top Performer</div>
+              <div style="font-size: 0.75rem; margin-top: 0.25rem;">${topPerformer.totalMarks} marks</div>
+            </div>
+          </div>
+
+          <!-- Class Overview -->
+          <div class="chart-container">
+            <h3 class="chart-title">Class Performance Overview</h3>
+            <div class="pass-fail-container">
+              <div class="pass-fail-visual">
+                <div class="pass-section" style="width: ${(passCount / totalStudents) * 100}%">
+                  ${Math.round((passCount / totalStudents) * 100)}%
+                </div>
+                <div class="fail-section" style="width: ${(failCount / totalStudents) * 100}%">
+                  ${Math.round((failCount / totalStudents) * 100)}%
+                </div>
+              </div>
+              <table class="pass-fail-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Count</th>
+                    <th>Percentage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Pass</td>
+                    <td>${passCount}</td>
+                    <td>${((passCount / totalStudents) * 100).toFixed(2)}%</td>
+                  </tr>
+                  <tr>
+                    <td>Fail</td>
+                    <td>${failCount}</td>
+                    <td>${((failCount / totalStudents) * 100).toFixed(2)}%</td>
+                  </tr>
+                  <tr style="font-weight: 600; background: var(--surface);">
+                    <td>Total</td>
+                    <td>${totalStudents}</td>
+                    <td>100%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Individual Student Reports -->
+      `;
+
+      // Generate individual student reports
+      parsedData.forEach((student, index) => {
+        const gpa = analysisMode === 'theory' ? student.theoryGpa : 
+                   analysisMode === 'practical' ? student.practicalGpa : student.totalGpa;
+        const totalMarks = analysisMode === 'theory' ? student.theoryMarks : 
+                          analysisMode === 'practical' ? student.practicalMarks : student.totalMarks;
+        const fullMarks = analysisMode === 'theory' ? subjects.length * theoryFull : 
+                         analysisMode === 'practical' ? subjects.length * practicalFull : 
+                         subjects.length * (theoryFull + practicalFull);
+        const percentage = analysisMode === 'theory' ? student.theoryPercentage : 
+                          analysisMode === 'practical' ? student.practicalPercentage : student.totalPercentage;
+        const rank = analysisMode === 'theory' ? student.theoryRank : 
+                    analysisMode === 'practical' ? student.practicalRank : student.totalRank;
+        const status = analysisMode === 'theory' ? student.theoryPass : 
+                      analysisMode === 'practical' ? student.practicalPass : student.totalPass;
+        const totalMarksDisplay = displayMode === 'marks' ? 
+          `${totalMarks}/${fullMarks}` : 
+          `${gpa.toFixed(2)}${showPercentage ? ` (${percentage.toFixed(2)}%)` : ''}`;
+
+        html += `
+          <div class="student-page" id="student-${index}">
+            <div class="student-header">
+              <h2>${schoolDetails.school}</h2>
+              <div style="opacity: 0.9; font-size: 0.875rem;">Student Performance Report</div>
+            </div>
+            <div class="student-content">
+              <table class="student-table">
+                <tr>
+                  <th>Name</th><td>${student.Name}</td>
+                  <th>Class</th><td>${schoolDetails.class}</td>
+                </tr>
+                <tr>
+                  <th>Roll No</th><td>${student.Roll}</td>
+                  <th>Term</th><td>${schoolDetails.term}</td>
+                </tr>
+                <tr>
+                  <th>Year (B.S.)</th><td>${schoolDetails.year}</td>
+                  <th>Issue Date (B.S.)</th><td>${schoolDetails.issueDate}</td>
+                </tr>
+                <tr>
+                  <th>GPA</th><td style="font-weight: 600; color: var(--primary);">${gpa.toFixed(2)}</td>
+                  <th>Total Marks</th><td style="font-weight: 600;">${totalMarksDisplay}</td>
+                </tr>
+                <tr>
+                  <th>Rank</th><td style="font-weight: 600; color: var(--warning);">#${rank}</td>
+                  <th>Status</th><td style="font-weight: 600; color: ${status ? 'var(--success)' : 'var(--danger)'};">
+                    ${status ? 'Pass' : `Fail (${student.failedSubjects.join(', ')})`}
+                  </td>
+                </tr>
+                ${student.TotalDays ? `
+                <tr>
+                  <th>Attendance</th>
+                  <td colspan="3" style="font-weight: 600;">
+                    ${student.Present}/${student.TotalDays} 
+                    (${((student.Present / student.TotalDays) * 100).toFixed(2)}%)
+                  </td>
+                </tr>` : ''}
+              </table>
+              
+              <div class="charts">
+                <div class="chart-container">
+                  <h3 class="chart-title">Subject-wise Performance</h3>
+                  <canvas id="barChart-${index}" width="400" height="300"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      results.innerHTML = html;
+
+      // Generate charts after DOM is ready
+      setTimeout(() => {
+        parsedData.forEach((student, index) => {
+          createBarChart(student, index);
+        });
+      }, 100);
+    }
+
+    function createBarChart(student, index) {
+      const barCtx = document.getElementById(`barChart-${index}`);
+      if (!barCtx) return;
+
+      const studentData = subjects.map(sub => {
+        const marks = analysisMode === 'theory' ? student.subjects[sub].th : 
+                     analysisMode === 'practical' ? student.subjects[sub].pr : student.subjects[sub].total;
+        const avg = analysisMode === 'theory' ? classAverages[sub].theory.avg : 
+                   analysisMode === 'practical' ? classAverages[sub].practical.avg : classAverages[sub].total.avg;
+        return {
+          subject: sub,
+          studentMarks: marks,
+          classAverage: avg
+        };
+      });
+
+      const yAxisMax = analysisMode === 'theory' ? theoryFull : 
+                      analysisMode === 'practical' ? practicalFull : theoryFull + practicalFull;
+      
+      const barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: subjects,
+          datasets: [
+            {
+              label: 'Student',
+              data: studentData.map(d => d.studentMarks),
+              backgroundColor: subjects.map((_, i) => {
+                const studentMarks = studentData[i].studentMarks;
+                const classAvg = studentData[i].classAverage;
+                return studentMarks > classAvg ? '#059669' : studentMarks === classAvg ? '#2563eb' : '#dc2626';
+              }),
+              borderWidth: 1,
+              borderRadius: 4,
+            },
+            {
+              label: 'Class Average',
+              data: studentData.map(d => d.classAverage),
+              backgroundColor: '#f59e0b',
+              borderWidth: 1,
+              borderRadius: 4,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+          },
+          scales: { 
+            y: { 
+              beginAtZero: true, 
+              max: yAxisMax,
+              title: {
+                display: true,
+                text: 'Marks'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Subjects'
+              }
+            }
+          }
+        }
+      });
+      
+      barCharts.push(barChart);
+    }
+
+    function showEmptyState() {
+      document.getElementById('results').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📊</div>
+          <div>
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text);">Ready to Analyze</h3>
+            <p>Upload your student data file or load sample data to generate comprehensive marksheet analysis with charts and insights.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function printResults() {
+      if (parsedData.length === 0) {
+        alert('Generate results first.');
+        return;
+      }
+      
+      // Resize charts for printing
+      barCharts.forEach(chart => {
+        chart.options.maintainAspectRatio = false;
+        chart.resize();
+      });
+      
+      window.print();
+    }
+
+    function clearForm() {
+      document.getElementById('data-form').reset();
+      
+      // Reset subjects to single empty field
+      const subjectList = document.getElementById('subject-list');
+      subjectList.innerHTML = `
+        <div class="subject-item">
+          <input type="text" class="subject-name subject-input" placeholder="Subject name" required>
+          <button type="button" class="btn btn-danger btn-small" onclick="removeSubject(this)" style="display: none;">×</button>
+        </div>
+      `;
+      
+      // Clear results
+      showEmptyState();
+      
+      // Clear data
+      parsedData = [];
+      subjects = [];
+      classAverages = {};
+      passCount = 0;
+      failCount = 0;
+      
+      // Destroy all charts
+      barCharts.forEach(chart => chart.destroy());
+      barCharts = [];
+    }
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+      showEmptyState();
+    });
+  </script>
+</body>
+</html>
