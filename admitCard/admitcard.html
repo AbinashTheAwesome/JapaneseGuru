@@ -520,7 +520,7 @@
 
         .class-teacher {
             position: absolute;
-            bottom: 40mm;
+            bottom: 10mm;
             right: 10mm;
             text-align: center;
         }
@@ -538,6 +538,17 @@
         .teacher-sig img {
             height: 40px;
             margin-bottom: 3px;
+        }
+        
+        /* Placeholder Card */
+        .placeholder-card {
+            border: 2px dashed #ccc;
+            background: #f0f0f0;
+            color: #888;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
         }
 
         /* Modal Styles */
@@ -987,7 +998,7 @@
             const date = new Date(dateStr);
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            return `${day}-${month}`;
+            return `${month}/${day}`;
         }
 
         function getDayName(dateStr, startDayIndex) {
@@ -1279,24 +1290,33 @@
             const examDates = `${formatDate(startDate)} - ${formatDate(endDate)}`;
             printArea.innerHTML = '';
             
-            for (let i = 0; i < studentData.length; i += 4) {
+            const totalStudents = studentData.length;
+            const numPages = Math.ceil(totalStudents / 4);
+            const cardsPerPage = 4;
+            
+            for (let i = 0; i < numPages; i++) {
                 const pageContainer = document.createElement('div');
                 pageContainer.className = 'card-page';
-
-                const studentsOnPage = [
-                    studentData[i],
-                    studentData[i + 1],
-                    studentData[i + 2],
-                    studentData[i + 3]
-                ];
-
+                
+                const startCardIndex = i * cardsPerPage;
+                const endCardIndex = startCardIndex + cardsPerPage;
+                
+                const studentsOnPage = studentData.slice(startCardIndex, endCardIndex);
+                
                 studentsOnPage.forEach(student => {
-                    if (student) {
-                        const card = generateSingleFrontCard(student, examDates);
-                        pageContainer.appendChild(card);
-                    }
+                    const card = generateSingleFrontCard(student, examDates);
+                    pageContainer.appendChild(card);
                 });
-
+                
+                // Add placeholder cards if needed to fill the page
+                const remainingCards = cardsPerPage - studentsOnPage.length;
+                for (let j = 0; j < remainingCards; j++) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'admit-card placeholder-card';
+                    placeholder.textContent = 'Empty Card';
+                    pageContainer.appendChild(placeholder);
+                }
+                
                 printArea.appendChild(pageContainer);
             }
         }
@@ -1358,18 +1378,24 @@
 
         function generateBackCards(startDate, endDate, startDayIndex) {
             printArea.innerHTML = '';
-            
-            const pageContainer = document.createElement('div');
-            pageContainer.className = 'card-page';
+            const totalStudents = studentData.length;
+            const numPages = Math.ceil(totalStudents / 4);
+            const cardsPerPage = 4;
             
             const backCardContent = createBackCardContent(startDate, endDate, startDayIndex);
             
-            // Append four back cards
-            for (let i = 0; i < 4; i++) {
-                pageContainer.appendChild(backCardContent.cloneNode(true));
+            // Generate pages with 4 cards each
+            for (let i = 0; i < numPages; i++) {
+                const pageContainer = document.createElement('div');
+                pageContainer.className = 'card-page';
+                
+                // Add four back cards per page
+                for (let j = 0; j < cardsPerPage; j++) {
+                    pageContainer.appendChild(backCardContent.cloneNode(true));
+                }
+                
+                printArea.appendChild(pageContainer);
             }
-            
-            printArea.appendChild(pageContainer);
         }
 
         function createBackCardContent(startDate, endDate, startDayIndex) {
